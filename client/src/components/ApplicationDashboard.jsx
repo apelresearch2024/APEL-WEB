@@ -37,8 +37,8 @@ const ApplicationsDashboard = () => {
       try {
         const response = await fetch(`${API_BASE}/admin/applications`, {
           headers: {
-            'x-admin-token': token,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
           }
         });
         const result = await response.json();
