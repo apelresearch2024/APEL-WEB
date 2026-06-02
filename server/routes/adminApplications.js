@@ -1,14 +1,17 @@
 // backend/routes/adminApplications.js
 import express from 'express';
 import Application from '../models/Application.js';
+import { protect } from '../middleware/authMiddleware.js'; // Secure token routing validation
 
 const router = express.Router();
 
-// 1. GET: Fetch all applications with job details populated
-router.get('/applications', async (req, res) => {
+/**
+ * 1. GET: Fetch all applications with job details populated
+ */
+router.get('/applications', protect, async (req, res) => {
   try {
     const applications = await Application.find()
-      .populate('vacancyId', 'title') // Automatically fetches only the title from the Vacancy collection
+      .populate('vacancyId', 'title') 
       .sort({ appliedAt: -1 }); // Newest submissions first
 
     res.status(200).json({
@@ -20,10 +23,12 @@ router.get('/applications', async (req, res) => {
   }
 });
 
-router.put('/applications/:id/status', async (req, res) => {
+/**
+ * 2. PUT: Update an application status tracking marker
+ */
+router.put('/applications/:id/status', protect, async (req, res) => {
   const { status } = req.body;
   
-  // Note: Your frontend sets status to 'Pending' or 'Shortlisted'
   if (!['Pending', 'Shortlisted', 'Rejected'].includes(status)) {
     return res.status(400).json({ success: false, message: 'Invalid status update.' });
   }
@@ -43,6 +48,26 @@ router.put('/applications/:id/status', async (req, res) => {
       success: true,
       message: `Applicant successfully ${status.toLowerCase()}.`,
       data: updatedApp
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+/**
+ * 3. DELETE: Permanently purge application records
+ */
+router.delete('/applications/:id', protect, async (req, res) => {
+  try {
+    const deletedApp = await Application.findByIdAndDelete(req.params.id);
+
+    if (!deletedApp) {
+      return res.status(404).json({ success: false, message: 'Application not found or already removed.' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Application records permanently purged.'
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

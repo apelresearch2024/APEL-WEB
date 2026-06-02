@@ -11,7 +11,7 @@ export const protect = async (req, res, next) => {
   else if (req.headers['x-api-key']) {
     providedKey = req.headers['x-api-key'];
   }
-
+  console.log(providedKey)
   if (!providedKey) {
     return res.status(401).json({ success: false, message: 'Access Denied: Operational Key Missing.' });
   }
