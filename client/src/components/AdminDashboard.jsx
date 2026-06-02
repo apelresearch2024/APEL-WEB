@@ -721,7 +721,6 @@ const AdminDashboard = () => {
   const finishStr = formatMonthYear(finishedDate);
   const duration = `${startStr} - ${finishStr}`;
 
-  // ✅ FIX: Resolve real storage session tokens
   const activeToken = localStorage.getItem('adminToken');
 
   if (!activeToken || activeToken === 'undefined') {
@@ -736,7 +735,6 @@ const AdminDashboard = () => {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        // ✅ FIX: Use activeToken variables instead of old global scopes
         'Authorization': `Bearer ${activeToken}`,
         'x-api-key': activeToken
       },
@@ -1588,7 +1586,7 @@ const AdminDashboard = () => {
                       </div>
                       <div>
                         <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Project Outcome</label>
-                        <input type="text" value={completedForm.outcome || ''} onChange={(e) => setCompletedForm({ ...completedForm, outcome: e.target.value })} className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 w-full focus:bg-white transition-colors" placeholder="e.g. 2 Patents, 1 Prototype" required />
+                        <input type="text" value={completedForm.outcome || ''} onChange={(e) => setCompletedForm({ ...completedForm, outcome: e.target.value })} className="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 w-full focus:bg-white transition-colors" placeholder="e.g. 2 Patents, 1 Prototype" />
                       </div>
                     </div>
 

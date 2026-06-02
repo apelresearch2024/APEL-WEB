@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Loader2, 
-  ShieldAlert, 
-  FileText, 
-  User, 
-  Mail, 
-  Phone, 
-  MessageSquare, 
-  Briefcase, 
-  CheckCircle, 
-  Clock, 
-  Trash2, 
-  UserCheck, 
+import {
+  Loader2,
+  ShieldAlert,
+  FileText,
+  User,
+  Mail,
+  Phone,
+  MessageSquare,
+  Briefcase,
+  CheckCircle,
+  Clock,
+  Trash2,
+  UserCheck,
   Sparkles,
   AlertTriangle
 } from 'lucide-react';
@@ -24,16 +24,20 @@ const ApplicationsDashboard = () => {
   const [activeFilter, setActiveFilter] = useState('All');
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+  const [expandedBio, setExpandedBio] = useState({});
 
+  const toggleBio = (id) => {
+    setExpandedBio(prev => ({ ...prev, [id]: !prev[id] }));
+  };
   // Helper helper function to resolve valid authorization keys dynamically
   const getAuthToken = () => {
     const storedToken = localStorage.getItem('adminToken');
-    
+
     // If the token is valid and not a corrupted literal "undefined" string, use it
     if (storedToken && storedToken !== 'undefined') {
       return storedToken;
     }
-    
+
     // Fallback: If AdminLogin stored "undefined", we pull the master key directly 
     // from frontend environment variables as a safety measure
     return import.meta.env.VITE_ADMIN_SECRET_KEY || import.meta.env.VITE_ADMIN_API_KEY || '';
@@ -57,7 +61,7 @@ const ApplicationsDashboard = () => {
           }
         });
         const result = await response.json();
-        
+
         if (result.success) {
           const cleanData = result.data.map(app => ({ ...app, status: app.status || 'Pending' }));
           setApps(cleanData);
@@ -87,7 +91,7 @@ const ApplicationsDashboard = () => {
 
   const updateStatus = async (id, currentName, newStatus) => {
     const currentToken = getAuthToken();
-    
+
     try {
       const response = await fetch(`${API_BASE}/admin/applications/${id}/status`, {
         method: 'PUT',
@@ -101,7 +105,7 @@ const ApplicationsDashboard = () => {
       const result = await response.json();
       if (result.success) {
         setApps(apps.map(app => app._id === id ? { ...app, status: newStatus } : app));
-        
+
         if (newStatus === 'Shortlisted') {
           toast.success(
             <div key={`shortlist-${id}`} className="flex flex-col text-xs">
@@ -162,7 +166,7 @@ const ApplicationsDashboard = () => {
   const executeDeleteApplication = async (id, currentName) => {
     const currentToken = getAuthToken();
     const loadingToast = toast.loading(`Cleaning up records for ${currentName}...`);
-    
+
     try {
       const response = await fetch(`${API_BASE}/admin/applications/${id}`, {
         method: 'DELETE',
@@ -215,7 +219,7 @@ const ApplicationsDashboard = () => {
   if (error) {
     return (
       <div className="p-10 text-center text-red-600 font-bold flex flex-col justify-center min-h-[50vh] items-center gap-3">
-        <ShieldAlert size={54} className="text-rose-500 animate-bounce" /> 
+        <ShieldAlert size={54} className="text-rose-500 animate-bounce" />
         <h3 className="text-lg text-slate-800">Dashboard Stream Disrupted</h3>
         <span className="text-sm font-normal text-slate-500 max-w-md">{error}</span>
       </div>
@@ -223,64 +227,113 @@ const ApplicationsDashboard = () => {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 min-h-screen bg-[#f8fafc] text-slate-800 font-sans">
+    <div className="w-full max-w-6xl mx-auto p-4 md:p-6 min-h-[calc(100vh-64px)] bg-[#f8fafc] text-slate-800 font-sans">
       {/* HEADER: Responsive stack */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 mb-6 border-b border-slate-200 gap-4">
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center pb-6 mb-8 border-b border-slate-200/80 gap-5">
         <div>
-          <h2 className="text-xl md:text-2xl font-black text-[#0b1b3d]">Lab Applications</h2>
-          <p className="text-xs text-slate-500 mt-1">Managing the selection pipeline.</p>
+          <h2 className="text-2xl font-black text-[#0b1b3d] tracking-tight flex items-center gap-2">
+            Lab Application Dashboard
+          </h2>
+          <p className="text-xs text-slate-500 font-medium mt-1">
+            Review applicant profiles, evaluate experience statements, and manage selection pipeline.
+          </p>
         </div>
 
-        {/* FILTERS: Scrollable on tiny screens */}
-        <div className="flex bg-slate-200/70 p-1 rounded-md border border-slate-300/50 w-full md:w-auto overflow-x-auto">
+        {/* FILTERS: Scrollable on mobile, flexible on desktop */}
+        <div className="flex bg-slate-200/70 p-1 rounded-md border border-slate-300/50 shadow-xs text-xs font-bold select-none w-full lg:w-auto overflow-x-auto">
           {Object.keys(metrics).map((type) => (
             <button
               key={type}
               onClick={() => setActiveFilter(type)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-sm text-xs font-bold whitespace-nowrap transition-all ${
-                activeFilter === type ? 'bg-white text-[#0b1b3d] shadow-sm' : 'text-slate-500'
-              }`}
+              className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-sm whitespace-nowrap transition-all duration-200 flex-1 lg:flex-none ${activeFilter === type
+                ? 'bg-white text-[#0b1b3d] shadow-sm font-extrabold'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-white/40'
+                }`}
             >
-              {type} <span className="bg-slate-300/70 px-1.5 rounded-full">{metrics[type].count}</span>
+              <span>{type}</span>
+              <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] ${activeFilter === type ? 'bg-[#0b1b3d] text-white' : 'bg-slate-300/70 text-slate-600'
+                }`}>{metrics[type].count}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {/* APPLICATIONS GRID: Fully responsive */}
-      <div className="grid grid-cols-1 gap-4">
+      {/* APPLICATIONS GRID: Responsive wrapping */}
+      <div className="grid grid-cols-1 gap-5">
         {filteredApps.map((app) => (
-          <div key={app._id} className="bg-white border border-slate-200 p-4 sm:p-6 rounded-sm shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex flex-col sm:flex-row justify-between gap-4">
-              {/* Content Area */}
-              <div className="space-y-2 flex-1">
-                <h3 className="font-bold text-lg text-slate-800">{app.applicantName}</h3>
-                <div className="text-sm text-slate-500 space-y-1">
-                  <p>{app.applicantEmail}</p>
-                  <p className="font-semibold text-[#0b1b3d]">Post: {app.vacancyId?.title || 'N/A'}</p>
+          <div
+            key={app._id}
+            className="bg-white border border-slate-200/80 p-5 sm:p-6 rounded-sm shadow-xs flex flex-col md:flex-row justify-between items-start gap-6 hover:border-slate-300 transition-all"
+          >
+            {/* LEFT: Info Container */}
+            <div className="space-y-3 flex-grow w-full">
+              {/* Applicant Info Section */}
+              <div className="space-y-2 flex-grow w-full">
+                <div className="flex flex-wrap items-center gap-3">
+                  {/* Name: Slightly reduced weight for elegance */}
+                  <h3 className="text-lg font-semibold text-slate-800 tracking-tight">
+                    {app.applicantName}
+                  </h3>
+
+                  {/* Status: Kept distinct but clean */}
+                  <span className={`text-[10px] uppercase font-bold px-2 py-0.5 border rounded-sm ${app.status === 'Shortlisted'
+                    ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                    : 'bg-amber-50 text-amber-700 border-amber-100'
+                    }`}>
+                    {app.status}
+                  </span>
+                </div>
+
+                {/* Metadata: Normal weight for better readability */}
+                <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-500 font-normal">
+                  <span className="flex items-center gap-2"><Mail size={14} className="text-slate-400" /> {app.applicantEmail}</span>
+                  <span className="flex items-center gap-2"><Phone size={14} className="text-slate-400" /> {app.contact || 'No contact provided'}</span>
                 </div>
               </div>
-              
-              {/* Actions Area: Stacked on mobile, side-by-side on desktop */}
-              <div className="flex flex-col gap-2 w-full sm:w-48">
-                <a 
-                  href={app.resumeUrl} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="bg-[#0b1b3d] text-white text-center py-2 rounded-sm text-xs font-bold"
-                >
-                  View Resume
-                </a>
-                <select
-                  value={app.status}
-                  onChange={(e) => handleActionChange(app._id, app.applicantName, e.target.value)}
-                  className="bg-slate-50 border border-slate-300 py-2 px-2 rounded-sm text-xs font-bold outline-none"
-                >
-                  <option value="Pending">Pending</option>
-                  <option value="Shortlisted">Shortlisted</option>
-                  <option value="RejectAndDelete">Reject & Purge</option>
-                </select>
+
+              <div className="text-xs font-bold uppercase bg-slate-50 border border-slate-200 text-slate-600 px-3 py-1.5 inline-block rounded-sm">
+                Target Post: <span className="text-[#0b1b3d]">{app.vacancyId?.title || 'N/A'}</span>
               </div>
+
+              {app.statement && (
+                <div className="mt-3 border border-slate-200 rounded-sm overflow-hidden bg-white">
+                  <button
+                    onClick={() => toggleBio(app._id)}
+                    className="w-full flex items-center justify-between p-3 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+                  >
+                    <span>Brief Statement</span>
+                    {expandedBio[app._id] ? '▲' : '▼'}
+                  </button>
+
+                  {expandedBio[app._id] && (
+                    <div className="p-3 pt-0 text-sm text-slate-700 font-normal leading-relaxed max-w-lg border-t border-slate-100">
+                      "{app.statement}"
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* RIGHT: Action Buttons (Responsive width) */}
+            <div className="flex flex-row md:flex-col gap-3 w-full md:w-48 flex-shrink-0">
+              <a
+                href={typeof app.resumeUrl === 'object' ? app.resumeUrl.webViewLink : app.resumeUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-[#0b1b3d] text-white px-4 py-2.5 rounded-sm text-xs font-bold hover:bg-[#15428a]"
+              >
+                <FileText size={15} /> Resume
+              </a>
+
+              <select
+                value={app.status}
+                onChange={(e) => handleActionChange(app._id, app.applicantName, e.target.value)}
+                className="flex-1 md:flex-none bg-white border border-slate-300 text-slate-700 text-xs font-extrabold px-3 py-2.5 rounded-sm outline-none cursor-pointer"
+              >
+                <option value="Pending">Pending</option>
+                <option value="Shortlisted">Shortlisted</option>
+                <option value="RejectAndDelete">Reject & Purge</option>
+              </select>
             </div>
           </div>
         ))}

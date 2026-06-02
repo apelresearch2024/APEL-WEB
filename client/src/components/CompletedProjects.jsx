@@ -72,7 +72,6 @@ const CompletedProjects = () => {
               </tr>
             ) : (
               completedProjects.map((proj) => {
-                // 🔥 FIX: Clean out structural metadata payload mapping issues safely
                 const actualPdfLink = proj.pdfUrl && typeof proj.pdfUrl === 'object' ? proj.pdfUrl.webViewLink : proj.pdfUrl;
 
                 return (

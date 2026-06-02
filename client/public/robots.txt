@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /scholars
+Allow: /publications
+Allow: /ongoing-projects
+Allow: /completed-projects
+
+# 🔒 Keep Google from displaying your private admin dashboard pages in public searches
+Disallow: /admin/login
+Disallow: /admin/dashboard
+Disallow: /admin/applicationsDashboard
+Disallow: /reset-password/
