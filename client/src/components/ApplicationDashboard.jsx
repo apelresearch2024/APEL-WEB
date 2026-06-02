@@ -223,115 +223,68 @@ const ApplicationsDashboard = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6 min-h-[calc(100vh-64px)] bg-[#f8fafc] text-slate-800 font-sans">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center pb-6 mb-8 border-b border-slate-200/80 gap-5">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 min-h-screen bg-[#f8fafc] text-slate-800 font-sans">
+      {/* HEADER: Responsive stack */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 mb-6 border-b border-slate-200 gap-4">
         <div>
-          <h2 className="text-2xl font-black text-[#0b1b3d] tracking-tight flex items-center gap-2">
-            Lab Application Dashboard
-          </h2>
-          <p className="text-xs text-slate-500 font-medium mt-1">
-            Review applicant profiles, evaluate experience statements, and manage selection pipeline trajectories.
-          </p>
+          <h2 className="text-xl md:text-2xl font-black text-[#0b1b3d]">Lab Applications</h2>
+          <p className="text-xs text-slate-500 mt-1">Managing the selection pipeline.</p>
         </div>
 
-        <div className="flex bg-slate-200/70 p-1 rounded-md border border-slate-300/50 shadow-xs text-xs font-bold select-none w-full lg:w-auto overflow-x-auto">
+        {/* FILTERS: Scrollable on tiny screens */}
+        <div className="flex bg-slate-200/70 p-1 rounded-md border border-slate-300/50 w-full md:w-auto overflow-x-auto">
           {Object.keys(metrics).map((type) => (
             <button
               key={type}
               onClick={() => setActiveFilter(type)}
-              className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-sm whitespace-nowrap transition-all duration-200 cursor-pointer flex-1 lg:flex-none ${
-                activeFilter === type 
-                  ? 'bg-white text-[#0b1b3d] shadow-sm font-extrabold' 
-                  : 'text-slate-500 hover:text-slate-800 hover:bg-white/40'
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-sm text-xs font-bold whitespace-nowrap transition-all ${
+                activeFilter === type ? 'bg-white text-[#0b1b3d] shadow-sm' : 'text-slate-500'
               }`}
             >
-              {metrics[type].icon}
-              <span>{type}</span>
-              <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] ${
-                activeFilter === type ? 'bg-[#0b1b3d] text-white' : 'bg-slate-300/70 text-slate-600'
-              }`}>{metrics[type].count}</span>
+              {type} <span className="bg-slate-300/70 px-1.5 rounded-full">{metrics[type].count}</span>
             </button>
           ))}
         </div>
       </div>
 
-      {filteredApps.length === 0 ? (
-        <div className="text-center py-24 text-slate-400 bg-white border border-dashed border-slate-200 rounded-sm shadow-xs flex flex-col items-center justify-center gap-2">
-          <Clock size={32} className="text-slate-300" />
-          <p className="text-sm font-medium text-slate-500">No applicant records match your selection criteria</p>
-          <p className="text-xs text-slate-400">Currently no items are filed within the "{activeFilter}" data track.</p>
-        </div>
-      ) : (
-        <div className="grid gap-5">
-          {filteredApps.map((app) => (
-            <div 
-              key={app._id} 
-              className="bg-white border border-slate-200/80 p-6 rounded-sm shadow-xs flex flex-col md:flex-row justify-between md:items-start gap-6 hover:border-slate-300 hover:shadow-md transition-all duration-200"
-            >
-              <div className="space-y-2.5 flex-grow max-w-3xl">
-                <div className="flex flex-wrap items-center gap-3">
-                  <h3 className="font-extrabold text-lg text-slate-800 flex items-center gap-2 tracking-tight">
-                    <User size={18} className="text-slate-400" /> {app.applicantName}
-                  </h3>
-                  <span className={`text-[10px] uppercase font-black tracking-widest px-2 py-0.5 border rounded-sm flex items-center gap-1 shadow-2xs ${
-                    app.status === 'Shortlisted' 
-                      ? 'bg-emerald-50 text-emerald-700 border-emerald-200/70' 
-                      : 'bg-amber-50/70 text-amber-700 border-amber-200/70'
-                  }`}>
-                    {app.status === 'Shortlisted' ? <CheckCircle size={10} /> : <Clock size={10} />}
-                    {app.status}
-                  </span>
+      {/* APPLICATIONS GRID: Fully responsive */}
+      <div className="grid grid-cols-1 gap-4">
+        {filteredApps.map((app) => (
+          <div key={app._id} className="bg-white border border-slate-200 p-4 sm:p-6 rounded-sm shadow-sm hover:shadow-md transition-shadow">
+            <div className="flex flex-col sm:flex-row justify-between gap-4">
+              {/* Content Area */}
+              <div className="space-y-2 flex-1">
+                <h3 className="font-bold text-lg text-slate-800">{app.applicantName}</h3>
+                <div className="text-sm text-slate-500 space-y-1">
+                  <p>{app.applicantEmail}</p>
+                  <p className="font-semibold text-[#0b1b3d]">Post: {app.vacancyId?.title || 'N/A'}</p>
                 </div>
-                
-                <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-slate-500 font-medium">
-                  <span className="flex items-center gap-1.5 hover:text-slate-800 transition-colors">
-                    <Mail size={14} className="text-slate-400" /> {app.applicantEmail}
-                  </span>
-                  <span className="flex items-center gap-1.5 hover:text-slate-800 transition-colors">
-                    <Phone size={14} className="text-slate-400" /> {app.contact || 'No contact numbers submitted'}
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider bg-slate-50 border border-slate-200/60 text-slate-600 px-2.5 py-1 inline-flex rounded-sm">
-                  <Briefcase size={12} className="text-slate-400" />
-                  <span>Target Post: <span className="text-[#0b1b3d] font-extrabold">{app.vacancyId?.title || 'Unknown Position'}</span></span>
-                </div>
-                
-                {app.statement && app.statement !== 'null' && (
-                  <div className="text-sm text-slate-600 flex items-start gap-3 bg-slate-50/50 p-3 rounded-sm border border-slate-200/40 mt-3 shadow-3xs">
-                    <MessageSquare size={15} className="mt-0.5 text-slate-400 flex-shrink-0" />
-                    <p className="leading-relaxed"><span className="font-semibold text-slate-500 not-italic">Purpose Statement:</span> <span className="italic text-slate-700">"{app.statement}"</span></p>
-                  </div>
-                )}
               </div>
-
-              <div className="flex sm:flex-row md:flex-col lg:flex-row items-center gap-3 md:self-start lg:self-center flex-shrink-0 md:pt-1 lg:pt-0">
+              
+              {/* Actions Area: Stacked on mobile, side-by-side on desktop */}
+              <div className="flex flex-col gap-2 w-full sm:w-48">
                 <a 
                   href={app.resumeUrl} 
                   target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 bg-[#0b1b3d] text-white px-4 py-2.5 rounded-sm text-xs font-bold hover:bg-[#15428a] shadow-xs active:scale-98 transition-all duration-150 w-full sm:w-auto md:w-full lg:w-auto"
+                  rel="noreferrer"
+                  className="bg-[#0b1b3d] text-white text-center py-2 rounded-sm text-xs font-bold"
                 >
-                  <FileText size={15} /> View Resume
+                  View Resume
                 </a>
-
-                <div className="relative w-full sm:w-auto md:w-full lg:w-auto">
-                  <select
-                    value={app.status}
-                    onChange={(e) => handleActionChange(app._id, app.applicantName, e.target.value)}
-                    className="bg-white border border-slate-300 hover:border-slate-400 text-slate-700 text-xs font-extrabold px-3 py-2.5 rounded-sm transition-all outline-none cursor-pointer focus:border-[#0b1b3d] focus:ring-1 focus:ring-[#0b1b3d] shadow-2xs w-full"
-                  >
-                    <option value="Pending">⚙️ Mark Pending State</option>
-                    <option value="Shortlisted">✅ Shortlist Candidate</option>
-                    <option value="RejectAndDelete">❌ Reject & Purge File</option>
-                  </select>
-                </div>
+                <select
+                  value={app.status}
+                  onChange={(e) => handleActionChange(app._id, app.applicantName, e.target.value)}
+                  className="bg-slate-50 border border-slate-300 py-2 px-2 rounded-sm text-xs font-bold outline-none"
+                >
+                  <option value="Pending">Pending</option>
+                  <option value="Shortlisted">Shortlisted</option>
+                  <option value="RejectAndDelete">Reject & Purge</option>
+                </select>
               </div>
-
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
