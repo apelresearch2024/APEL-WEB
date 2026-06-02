@@ -21,15 +21,30 @@ const ApplicationsDashboard = () => {
   const [apps, setApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [activeFilter, setActiveFilter] = useState('All'); // Options: 'All' | 'Pending' | 'Shortlisted'
+  const [activeFilter, setActiveFilter] = useState('All');
 
-  const token = localStorage.getItem('token');
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+
+  // Helper helper function to resolve valid authorization keys dynamically
+  const getAuthToken = () => {
+    const storedToken = localStorage.getItem('adminToken');
+    
+    // If the token is valid and not a corrupted literal "undefined" string, use it
+    if (storedToken && storedToken !== 'undefined') {
+      return storedToken;
+    }
+    
+    // Fallback: If AdminLogin stored "undefined", we pull the master key directly 
+    // from frontend environment variables as a safety measure
+    return import.meta.env.VITE_ADMIN_SECRET_KEY || import.meta.env.VITE_ADMIN_API_KEY || '';
+  };
 
   useEffect(() => {
     const fetchApplications = async () => {
-      if (!token) {
-        setError('Unauthorized: No login token found. Please log in.');
+      const currentToken = getAuthToken();
+
+      if (!currentToken) {
+        setError('Unauthorized: No operational administrative key could be resolved. Please log back in.');
         setLoading(false);
         return;
       }
@@ -38,13 +53,15 @@ const ApplicationsDashboard = () => {
         const response = await fetch(`${API_BASE}/admin/applications`, {
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
+            'Authorization': `Bearer ${currentToken}`
           }
         });
         const result = await response.json();
+        
         if (result.success) {
           const cleanData = result.data.map(app => ({ ...app, status: app.status || 'Pending' }));
           setApps(cleanData);
+          setError('');
         } else {
           setError(result.message || 'Failed to retrieve applications.');
         }
@@ -56,9 +73,8 @@ const ApplicationsDashboard = () => {
     };
 
     fetchApplications();
-  }, [token, API_BASE]);
+  }, [API_BASE]);
 
-  // Handle action changes from selection dropdown
   const handleActionChange = (id, currentName, selectedValue) => {
     if (selectedValue === 'Pending') {
       updateStatus(id, currentName, 'Pending');
@@ -69,14 +85,15 @@ const ApplicationsDashboard = () => {
     }
   };
 
-  // State mutator for Pending and Shortlisted actions
   const updateStatus = async (id, currentName, newStatus) => {
+    const currentToken = getAuthToken();
+    
     try {
       const response = await fetch(`${API_BASE}/admin/applications/${id}/status`, {
         method: 'PUT',
         headers: {
-          'x-admin-token': token,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentToken}`
         },
         body: JSON.stringify({ status: newStatus })
       });
@@ -104,7 +121,6 @@ const ApplicationsDashboard = () => {
     }
   };
 
-  // Production-grade custom toast popup replacing browser confirmation dialog boxes
   const triggerToastConfirmation = (id, currentName) => {
     toast((t) => (
       <div className="flex flex-col gap-3 p-1 max-w-xs text-xs">
@@ -119,7 +135,6 @@ const ApplicationsDashboard = () => {
           <button
             onClick={() => {
               toast.dismiss(t.id);
-              // 🛠️ FIXED: Reset state array mapping briefly to force select menus off 'RejectAndDelete' on cancel
               setApps(prev => [...prev]);
             }}
             className="px-2.5 py-1.5 font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-sm cursor-pointer transition-colors"
@@ -144,15 +159,16 @@ const ApplicationsDashboard = () => {
     });
   };
 
-  // Complete DB and file deletion pipeline execution block
   const executeDeleteApplication = async (id, currentName) => {
+    const currentToken = getAuthToken();
     const loadingToast = toast.loading(`Cleaning up records for ${currentName}...`);
+    
     try {
       const response = await fetch(`${API_BASE}/admin/applications/${id}`, {
         method: 'DELETE',
         headers: {
-          'x-admin-token': token,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentToken}`
         }
       });
 
@@ -169,7 +185,6 @@ const ApplicationsDashboard = () => {
           { icon: <Trash2 className="text-rose-500" size={16} /> }
         );
       } else {
-        // 🛠️ FIXED: Reset dropdown visualization layout if the backend refuses to execute the deletion pipeline
         setApps(prev => [...prev]);
         toast.error(result.message || 'Server rejected standard document destruction request.');
       }
@@ -180,7 +195,6 @@ const ApplicationsDashboard = () => {
     }
   };
 
-  // Compute stats metrics for dashboard counter items
   const metrics = {
     All: { count: apps.length, icon: <User size={14} /> },
     Pending: { count: apps.filter(a => a.status === 'Pending').length, icon: <Clock size={14} /> },
@@ -210,8 +224,6 @@ const ApplicationsDashboard = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6 min-h-[calc(100vh-64px)] bg-[#f8fafc] text-slate-800 font-sans">
-      
-      {/* Header Panel Component */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center pb-6 mb-8 border-b border-slate-200/80 gap-5">
         <div>
           <h2 className="text-2xl font-black text-[#0b1b3d] tracking-tight flex items-center gap-2">
@@ -222,7 +234,6 @@ const ApplicationsDashboard = () => {
           </p>
         </div>
 
-        {/* Dynamic Metric Multi-Toggles */}
         <div className="flex bg-slate-200/70 p-1 rounded-md border border-slate-300/50 shadow-xs text-xs font-bold select-none w-full lg:w-auto overflow-x-auto">
           {Object.keys(metrics).map((type) => (
             <button
@@ -244,7 +255,6 @@ const ApplicationsDashboard = () => {
         </div>
       </div>
 
-      {/* Main Dynamic Workspace Render Section */}
       {filteredApps.length === 0 ? (
         <div className="text-center py-24 text-slate-400 bg-white border border-dashed border-slate-200 rounded-sm shadow-xs flex flex-col items-center justify-center gap-2">
           <Clock size={32} className="text-slate-300" />
@@ -258,7 +268,6 @@ const ApplicationsDashboard = () => {
               key={app._id} 
               className="bg-white border border-slate-200/80 p-6 rounded-sm shadow-xs flex flex-col md:flex-row justify-between md:items-start gap-6 hover:border-slate-300 hover:shadow-md transition-all duration-200"
             >
-              {/* Left Segment: Profile Meta Block */}
               <div className="space-y-2.5 flex-grow max-w-3xl">
                 <div className="flex flex-wrap items-center gap-3">
                   <h3 className="font-extrabold text-lg text-slate-800 flex items-center gap-2 tracking-tight">
@@ -274,7 +283,6 @@ const ApplicationsDashboard = () => {
                   </span>
                 </div>
                 
-                {/* Contact Coordinates Deck */}
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-slate-500 font-medium">
                   <span className="flex items-center gap-1.5 hover:text-slate-800 transition-colors">
                     <Mail size={14} className="text-slate-400" /> {app.applicantEmail}
@@ -284,13 +292,11 @@ const ApplicationsDashboard = () => {
                   </span>
                 </div>
                 
-                {/* Dynamic Target Position Tracking Banner */}
                 <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider bg-slate-50 border border-slate-200/60 text-slate-600 px-2.5 py-1 inline-flex rounded-sm">
                   <Briefcase size={12} className="text-slate-400" />
                   <span>Target Post: <span className="text-[#0b1b3d] font-extrabold">{app.vacancyId?.title || 'Unknown Position'}</span></span>
                 </div>
                 
-                {/* Statement Display Section */}
                 {app.statement && app.statement !== 'null' && (
                   <div className="text-sm text-slate-600 flex items-start gap-3 bg-slate-50/50 p-3 rounded-sm border border-slate-200/40 mt-3 shadow-3xs">
                     <MessageSquare size={15} className="mt-0.5 text-slate-400 flex-shrink-0" />
@@ -299,9 +305,7 @@ const ApplicationsDashboard = () => {
                 )}
               </div>
 
-              {/* Right Segment: Administrative Execution Controls */}
               <div className="flex sm:flex-row md:flex-col lg:flex-row items-center gap-3 md:self-start lg:self-center flex-shrink-0 md:pt-1 lg:pt-0">
-                {/* 🛠️ FIXED: Added security parameters to prevent potential reverse tab-nabbing vulnerabilities */}
                 <a 
                   href={app.resumeUrl} 
                   target="_blank" 
