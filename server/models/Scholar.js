@@ -21,7 +21,6 @@ const scholarSchema = new mongoose.Schema({
   },
   researchTopic: {
     type: String,
-    required: [true, 'Research topic or field domain description is required'],
     trim: true
   },
   imageUrl: {

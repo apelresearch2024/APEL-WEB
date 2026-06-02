@@ -178,75 +178,53 @@ const AdminDashboard = () => {
 
   // --- API WRITE (CREATE) OPERATION ---
   const handleFormSubmit = async (e, endpoint, formData, resetForm, fallbackState) => {
-  e.preventDefault();
-  setLoading(true);
+    e.preventDefault();
+    setLoading(true);
+    const activeToken = localStorage.getItem('adminToken');
+    if (!activeToken || activeToken === 'undefined') {
+      toast.error('Administrative token missing. Please log back in.');
+      setLoading(false);
+      return;
+    }
+    try {
+      const data = new FormData();
 
-  const activeToken = localStorage.getItem('adminToken');
-  if (!activeToken || activeToken === 'undefined') {
-    toast.error('Administrative token missing. Please log back in.');
-    setLoading(false);
-    return;
-  }
-
-  try {
-    const data = new FormData();
-
-    // Loop through keys and handle file assets vs textual parameters flawlessly
-    Object.keys(formData).forEach((key) => {
-      if (key === 'pdfFile' || key === 'imageFile') {
-        if (formData[key]) {
+      Object.keys(formData).forEach((key) => {
+        if (key === 'pdfFile' || key === 'imageFile') {
+          if (formData[key]) data.append(key, formData[key]);
+        }
+        else if (formData[key] !== null && formData[key] !== '') {
           data.append(key, formData[key]);
         }
-      } else {
-        const value = formData[key];
-        // ✅ CORRECTION: Coerce text/numbers safely to plain strings 
-        // to comply perfectly with modern multi-part FormData specifications.
-        if (value !== null && value !== undefined && value !== '') {
-          data.append(key, String(value));
-        } else {
-          data.append(key, ''); // Safe fallback blank string for backend schemas
-        }
-      }
-    });
-
-    // Handle project duration logic cleanly
-    if (endpoint === 'projects' && formData.status === 'Ongoing' && formData.startDate) {
-      if (typeof formatMonthYear === 'function') {
+      });
+      if (endpoint === 'projects' && formData.status === 'Ongoing' && formData.startDate) {
         data.append('duration', `${formatMonthYear(formData.startDate)}`);
       }
-    }
 
-    const response = await fetch(`${API_BASE}/${endpoint}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${activeToken}`,
-        'x-api-key': activeToken
-        // Note: Let the browser automatically calculate content boundaries. 
-        // Do NOT pass a Content-Type here.
-      },
-      body: data
-    });
+      const response = await fetch(`${API_BASE}/${endpoint}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${activeToken}`,
+          'x-api-key': activeToken
+        },
+        body: data
+      });
 
-    const resData = await response.json();
+      const resData = await response.json();
 
-    if (response.ok || resData.success) {
-      toast.success(resData.message || 'Record successfully integrated.');
-      if (typeof resetForm === 'function') {
+      if (response.ok || resData.success) {
+        toast.success(resData.message || 'Record successfully integrated.');
         resetForm(fallbackState);
-      }
-      if (typeof fetchAllData === 'function') {
         fetchAllData();
+      } else {
+        toast.error(resData.message || 'Validation error.');
       }
-    } else {
-      toast.error(resData.message || 'Validation error.');
+    } catch (err) {
+      toast.error('Network failure connecting with remote server.');
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    toast.error('Network failure connecting with remote server.');
-    console.error("Form submission trace error:", err);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
   const handleAchievementSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -782,81 +760,81 @@ const AdminDashboard = () => {
   };
   // --- API DELETE OPERATION ---
   const handleItemDelete = (endpoint, id) => {
-    // Use a predictable string key to group these related toast actions safely
-    const DELETION_TOAST_ID = `delete-action-${id}`;
+  // Use a predictable string key to group these related toast actions safely
+  const DELETION_TOAST_ID = `delete-action-${id}`;
 
-    toast((t) => (
-      <div className="flex flex-col gap-4 min-w-[300px] p-2">
-        <div>
-          <h3 className="font-semibold text-slate-800">Confirm Deletion</h3>
-          <p className="text-sm text-slate-600 mt-1">
-            Are you sure? This action cannot be undone.
-          </p>
-        </div>
-
-        <div className="flex gap-3 justify-end">
-          <button
-            onClick={() => toast.dismiss(t.id)}
-            className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded hover:bg-slate-200 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={async () => {
-              // Dismiss the confirmation dialogue immediately using its internal id
-              toast.dismiss(t.id);
-
-              const activeToken = localStorage.getItem('adminToken');
-
-              if (!activeToken || activeToken === 'undefined') {
-                toast.error("Session expired or key missing. Please re-login.");
-                return;
-              }
-
-              // 1. Force the loading tracker to occupy a fixed ID string
-              toast.loading("Processing system documentation removal...", { id: DELETION_TOAST_ID });
-
-              try {
-                const res = await fetch(`${API_BASE}/${endpoint}/${id}`, {
-                  method: 'DELETE',
-                  headers: {
-                    'Authorization': `Bearer ${activeToken}`,
-                    'x-api-key': activeToken,
-                    'Content-Type': 'application/json'
-                  }
-                });
-
-                // Safely verify response type before json decoding to avoid throwing silent unhandled crashes
-                const contentType = res.headers.get("content-type");
-                let resData = {};
-                if (contentType && contentType.includes("application/json")) {
-                  resData = await res.json();
-                }
-
-                if (res.ok || resData.success) {
-                  // 2. Instead of calling dismiss(), update the exact loading slot into a success message
-                  toast.success(resData.message || "Successfully deleted!", { id: DELETION_TOAST_ID });
-                  fetchAllData();
-                } else {
-                  // 3. Update the exact loading slot into an error message
-                  toast.error(resData.message || "Failed to delete record.", { id: DELETION_TOAST_ID });
-                }
-              } catch (err) {
-                // 4. Fallback error cleanly overrides the identical loading placeholder slot
-                toast.error("An error occurred during database cleanup.", { id: DELETION_TOAST_ID });
-              }
-            }}
-            className="px-4 py-2 text-sm font-bold text-white bg-red-600 rounded hover:bg-red-700 transition-colors shadow-sm"
-          >
-            Delete
-          </button>
-        </div>
+  toast((t) => (
+    <div className="flex flex-col gap-4 min-w-[300px] p-2">
+      <div>
+        <h3 className="font-semibold text-slate-800">Confirm Deletion</h3>
+        <p className="text-sm text-slate-600 mt-1">
+          Are you sure? This action cannot be undone.
+        </p>
       </div>
-    ), {
-      duration: Infinity, // Ensure user has time to read confirmation without it closing early
-      style: { border: '1px solid #e2e8f0' }
-    });
-  };
+
+      <div className="flex gap-3 justify-end">
+        <button
+          onClick={() => toast.dismiss(t.id)}
+          className="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded hover:bg-slate-200 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={async () => {
+            // Dismiss the confirmation dialogue immediately using its internal id
+            toast.dismiss(t.id);
+
+            const activeToken = localStorage.getItem('adminToken');
+
+            if (!activeToken || activeToken === 'undefined') {
+              toast.error("Session expired or key missing. Please re-login.");
+              return;
+            }
+
+            // 1. Force the loading tracker to occupy a fixed ID string
+            toast.loading("Processing system documentation removal...", { id: DELETION_TOAST_ID });
+
+            try {
+              const res = await fetch(`${API_BASE}/${endpoint}/${id}`, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': `Bearer ${activeToken}`,
+                  'x-api-key': activeToken,
+                  'Content-Type': 'application/json'
+                }
+              });
+
+              // Safely verify response type before json decoding to avoid throwing silent unhandled crashes
+              const contentType = res.headers.get("content-type");
+              let resData = {};
+              if (contentType && contentType.includes("application/json")) {
+                resData = await res.json();
+              }
+
+              if (res.ok || resData.success) {
+                // 2. Instead of calling dismiss(), update the exact loading slot into a success message
+                toast.success(resData.message || "Successfully deleted!", { id: DELETION_TOAST_ID });
+                fetchAllData();
+              } else {
+                // 3. Update the exact loading slot into an error message
+                toast.error(resData.message || "Failed to delete record.", { id: DELETION_TOAST_ID });
+              }
+            } catch (err) {
+              // 4. Fallback error cleanly overrides the identical loading placeholder slot
+              toast.error("An error occurred during database cleanup.", { id: DELETION_TOAST_ID });
+            }
+          }}
+          className="px-4 py-2 text-sm font-bold text-white bg-red-600 rounded hover:bg-red-700 transition-colors shadow-sm"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  ), {
+    duration: Infinity, // Ensure user has time to read confirmation without it closing early
+    style: { border: '1px solid #e2e8f0' }
+  });
+};
   const shiftProjectToCompleted = (proj) => {
     // Local state for the toast inputs
     let completionDate = new Date().toISOString().split('T')[0];
@@ -1124,25 +1102,25 @@ const AdminDashboard = () => {
 
                     {/* Row 5: Domain Area Topic */}
                     <div>
-                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">
-                        Primary Domain / Core Research Focus Topic
-                      </label>
-                      <input
-                        type="text"
-                        value={scholarForm.researchTopic || ''}
-                        onChange={(e) => {
+  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">
+    Primary Domain / Core Research Focus Topic
+  </label>
+  <input 
+    type="text" 
+    value={scholarForm.researchTopic || ''} 
+    onChange={(e) => {
 
-                          setScholarForm(prev => ({
-                            ...prev,
-                            researchTopic: e.target.value
-                          }));
-                        }}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white transition-colors outline-none focus:border-slate-400"
-                        placeholder="e.g. Wide Bandgap Semiconductor Inverters"
-                        // Conditional validation flag that changes dynamically
-                        required={scholarForm.status === 'Current'}
-                      />
-                    </div>
+      setScholarForm(prev => ({ 
+        ...prev, 
+        researchTopic: e.target.value 
+      }));
+    }} 
+    className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white transition-colors outline-none focus:border-slate-400" 
+    placeholder="e.g. Wide Bandgap Semiconductor Inverters" 
+    // Conditional validation flag that changes dynamically
+    required={scholarForm.status === 'Current'} 
+  />
+</div>
 
                     <button type="submit" disabled={loading} className="bg-[#0b1b3d] hover:bg-[#112754] text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide uppercase w-full sm:w-auto shadow transition-all">{loading ? 'Publishing details...' : 'Add Scholar Profile'}</button>
                   </form>
