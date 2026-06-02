@@ -1,8 +1,8 @@
-import Application from "../models/Application.js";
-
 export const submitApplication = async (req, res) => {
   try {
-    const { fullName, email, contact, position, statement } = req.body;
+    // Ensure you are destructuring 'vacancyId', not 'position'
+    const { fullName, email, contact, vacancyId, statement } = req.body;
+    
     if (!req.file) {
       return res.status(400).json({ message: 'Please upload a resume file in PDF format.' });
     }
@@ -11,7 +11,7 @@ export const submitApplication = async (req, res) => {
       fullName,
       email,
       contact,
-      position,
+      vacancyId, // Make sure this key matches your Mongoose Model
       statement,
       resumePath: req.file.path
     });
@@ -23,6 +23,8 @@ export const submitApplication = async (req, res) => {
     });
 
   } catch (error) {
+    // Log the error so you can see the validation details in Render logs
+    console.error("Submission Error:", error); 
     res.status(500).json({
       success: false,
       message: 'Server error processing application submission.',
