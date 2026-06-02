@@ -11,10 +11,11 @@ export const protect = async (req, res, next) => {
   else if (req.headers['x-api-key']) {
     providedKey = req.headers['x-api-key'];
   }
-  console.log(providedKey)
+
   if (!providedKey) {
     return res.status(401).json({ success: false, message: 'Access Denied: Operational Key Missing.' });
   }
+  console.log(providedKey)
   // 3. Fallback tracking to catch both key naming styles used across server.js and .env
   const MASTER_KEY = process.env.ADMIN_SECRET_KEY || process.env.ADMIN_API_KEY;
   if (providedKey !== MASTER_KEY) {

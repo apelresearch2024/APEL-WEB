@@ -180,7 +180,12 @@ const AdminDashboard = () => {
   const handleFormSubmit = async (e, endpoint, formData, resetForm, fallbackState) => {
     e.preventDefault();
     setLoading(true);
-
+    const activeToken = localStorage.getItem('adminToken');
+    if (!activeToken || activeToken === 'undefined') {
+    toast.error('Administrative token missing. Please log back in.');
+    setLoading(false);
+    return;
+  }
     try {
       const data = new FormData();
 
@@ -199,8 +204,8 @@ const AdminDashboard = () => {
       const response = await fetch(`${API_BASE}/${endpoint}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'x-api-key': token
+          'Authorization': `Bearer ${activeToken}`,
+          'x-api-key': activeToken
         },
         body: data
       });

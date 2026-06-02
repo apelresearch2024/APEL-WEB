@@ -28,7 +28,7 @@ const AdminLogin = () => {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         localStorage.setItem('adminToken', data.apiKey);
         toast.success('Authentication verified. Welcome back!');

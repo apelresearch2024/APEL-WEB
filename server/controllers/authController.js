@@ -26,7 +26,7 @@ export const adminLogin = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Authentication successful!',
-      apiKey: process.env.ADMIN_API_KEY
+      apiKey: process.env.ADMIN_SECRET_KEY
     });
 
   } catch (error) {
