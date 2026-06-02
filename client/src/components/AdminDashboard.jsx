@@ -226,108 +226,130 @@ const AdminDashboard = () => {
     }
   };
   const handleAchievementSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      const response = await fetch(`${API_BASE}/achievements`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(achievementForm)
-      });
+  // ✅ FIX: Extract the valid token stored by your login page
+  const activeToken = localStorage.getItem('adminToken');
 
-      const resData = await response.json();
+  if (!activeToken || activeToken === 'undefined') {
+    toast.error('Administrative token missing. Please log back in.');
+    setLoading(false);
+    return;
+  }
 
-      if (response.ok) {
-        toast.success("Achievement recorded!");
-        setAchievementForm(initialAchievementState);
-        fetchAllData();
-      } else {
-        toast.error(resData.message || "Failed to save achievement.");
-      }
-    } catch (err) {
-      toast.error('Network failure.');
-    } finally {
-      setLoading(false);
+  try {
+    const response = await fetch(`${API_BASE}/achievements`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        // ✅ FIX: Attach the confirmed active token string
+        'Authorization': `Bearer ${activeToken}`,
+        'x-api-key': activeToken
+      },
+      body: JSON.stringify(achievementForm)
+    });
+
+    const resData = await response.json();
+
+    if (response.ok || resData.success) {
+      toast.success("Achievement recorded!");
+      setAchievementForm(initialAchievementState);
+      fetchAllData();
+    } else {
+      toast.error(resData.message || "Failed to save achievement.");
     }
-  };
+  } catch (err) {
+    toast.error('Network failure updating achievements.');
+  } finally {
+    setLoading(false);
+  }
+};
   const handleMarkAsAlumnus = (scholarId) => {
-    const currentYear = new Date().getFullYear();
+  const currentYear = new Date().getFullYear();
 
-    toast.custom((t) => {
-      const handleSubmit = async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target);
-        const graduationYear = formData.get('graduationYear') || currentYear;
-        toast.remove(t.id);
-        const loadingToastId = toast.loading('Archiving scholar profile...');
-        try {
-          const response = await fetch(`${API_BASE}/scholars/${scholarId}/status`, {
-            method: 'PATCH',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'x-api-key': token,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ graduationYear: Number(graduationYear) })
-          });
+  toast.custom((t) => {
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const graduationYear = formData.get('graduationYear') || currentYear;
+      
+      // Clear out the custom toast layout right away
+      toast.remove(t.id);
 
-          const data = await response.json();
+      // ✅ FIX: Read token during confirm click context
+      const activeToken = localStorage.getItem('adminToken');
+      if (!activeToken || activeToken === 'undefined') {
+        toast.error('Session expired or unauthorized. Please re-login.');
+        return;
+      }
 
-          if (response.ok || data.success) {
-            toast.success(data.message || 'Scholar successfully archived to Alumni.', { id: loadingToastId });
-            fetchAllData();
-          } else {
-            toast.error(data.message || 'Could not update scholar status.', { id: loadingToastId });
-          }
-        } catch (err) {
-          toast.error('Network error reaching the server.', { id: loadingToastId });
+      const loadingToastId = toast.loading('Archiving scholar profile...');
+      try {
+        const response = await fetch(`${API_BASE}/scholars/${scholarId}/status`, {
+          method: 'PATCH',
+          headers: {
+            // ✅ FIX: Supply active token tracking parameters
+            'Authorization': `Bearer ${activeToken}`,
+            'x-api-key': activeToken,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ graduationYear: Number(graduationYear) })
+        });
+
+        const data = await response.json();
+
+        if (response.ok || data.success) {
+          toast.success(data.message || 'Scholar successfully archived to Alumni.', { id: loadingToastId });
+          fetchAllData();
+        } else {
+          toast.error(data.message || 'Could not update scholar status.', { id: loadingToastId });
         }
-      };
+      } catch (err) {
+        toast.error('Network error reaching the server.', { id: loadingToastId });
+      }
+    };
 
-      return (
-        <div className="w-[420px] bg-white shadow-2xl rounded-xl pointer-events-auto flex flex-col p-6 border border-slate-200">
-          <form onSubmit={handleSubmit}>
-            <h5 className="text-sm font-bold text-[#0b1b3d] uppercase tracking-wide flex items-center gap-1.5">
-              🎓 Archive Scholar Record
-            </h5>
-            <p className="text-xs text-slate-400 font-medium mt-1 mb-4">
-              Specify the graduation or departure year to process this status transition.
-            </p>
+    return (
+      <div className="w-[420px] bg-white shadow-2xl rounded-xl pointer-events-auto flex flex-col p-6 border border-slate-200">
+        <form onSubmit={handleSubmit}>
+          <h5 className="text-sm font-bold text-[#0b1b3d] uppercase tracking-wide flex items-center gap-1.5">
+            🎓 Archive Scholar Record
+          </h5>
+          <p className="text-xs text-slate-400 font-medium mt-1 mb-4">
+            Specify the graduation or departure year to process this status transition.
+          </p>
 
-            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Departure Year</label>
-            <input
-              type="number"
-              name="graduationYear"
-              defaultValue={currentYear}
-              className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm font-bold text-slate-700 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
-              placeholder="YYYY"
-              required
-            />
+          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Departure Year</label>
+          <input
+            type="number"
+            name="graduationYear"
+            defaultValue={currentYear}
+            className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm font-bold text-slate-700 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+            placeholder="YYYY"
+            required
+          />
 
-            <div className="flex justify-end items-center gap-2 mt-5 pt-3 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => toast.remove(t.id)}
-                className="px-3 py-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-wider"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg shadow-sm transition-all uppercase tracking-wider"
-              >
-                Confirm Status Update
-              </button>
-            </div>
-          </form>
-        </div>
-      );
-    }, { duration: Infinity });
-  };
+          <div className="flex justify-end items-center gap-2 mt-5 pt-3 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => toast.remove(t.id)}
+              className="px-3 py-2 text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-wider"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg shadow-sm transition-all uppercase tracking-wider"
+            >
+              Confirm Status Update
+            </button>
+          </div>
+        </form>
+      </div>
+    );
+  }, { duration: Infinity });
+};
   const submitAlumniStatus = async (scholarId, graduationYear) => {
     try {
       const response = await fetch(`${API_BASE}/scholars/${scholarId}/status`, {
@@ -695,38 +717,54 @@ const AdminDashboard = () => {
     }
   };
   const performCompletion = async (proj, finishedDate, outcome) => {
-    const startStr = proj.startDate ? formatMonthYear(proj.startDate) : 'Unknown Start';
-    const finishStr = formatMonthYear(finishedDate);
-    const duration = `${startStr} - ${finishStr}`;
+  const startStr = proj.startDate ? formatMonthYear(proj.startDate) : 'Unknown Start';
+  const finishStr = formatMonthYear(finishedDate);
+  const duration = `${startStr} - ${finishStr}`;
 
-    try {
-      const response = await fetch(`${API_BASE}/projects/${proj._id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-          'x-api-key': token
-        },
-        body: JSON.stringify({
-          ...proj,
-          status: 'Completed',
-          duration: duration,
-          outcome: outcome || 'N/A' // Fallback for the new field
-        })
-      });
+  // ✅ FIX: Resolve real storage session tokens
+  const activeToken = localStorage.getItem('adminToken');
 
-      if (response.ok) {
-        toast.success("Project archived successfully!");
-        fetchAllData();
-      } else {
-        toast.error("Failed to archive.");
-      }
-    } catch (err) {
-      toast.error("Network error.");
+  if (!activeToken || activeToken === 'undefined') {
+    toast.error('Session expired or unauthorized. Please re-login.');
+    return;
+  }
+
+  const workingToast = toast.loading("Archiving active project status properties...");
+
+  try {
+    const response = await fetch(`${API_BASE}/projects/${proj._id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        // ✅ FIX: Use activeToken variables instead of old global scopes
+        'Authorization': `Bearer ${activeToken}`,
+        'x-api-key': activeToken
+      },
+      body: JSON.stringify({
+        ...proj,
+        status: 'Completed',
+        duration: duration,
+        outcome: outcome || 'N/A'
+      })
+    });
+
+    const data = await response.json();
+    toast.dismiss(workingToast);
+
+    if (response.ok || data.success) {
+      toast.success("Project archived successfully!");
+      fetchAllData();
+    } else {
+      toast.error(data.message || "Failed to archive project.");
     }
-  };
+  } catch (err) {
+    toast.dismiss(workingToast);
+    toast.error("Network error modifying project metadata values.");
+  }
+};
   // --- API DELETE OPERATION ---
-  const handleItemDelete = (endpoint, id) => {
+ const handleItemDelete = (endpoint, id) => {
+  // Initialize the target confirmation toast frame instance
   toast((t) => (
     <div className="flex flex-col gap-4 min-w-[300px] p-2">
       <div>
@@ -745,9 +783,9 @@ const AdminDashboard = () => {
         </button>
         <button
           onClick={async () => {
+            // 1. Immediately drop the interactive confirmation layout to prevent double-clicks
             toast.dismiss(t.id);
             
-            // ✅ THE FIX: Dynamically read the real token generated by AdminLogin.jsx
             const activeToken = localStorage.getItem('adminToken');
 
             if (!activeToken || activeToken === 'undefined') {
@@ -755,11 +793,13 @@ const AdminDashboard = () => {
               return;
             }
 
+            // 2. Initialize a loading state tracker to follow your remote database operations
+            const structuralSyncToast = toast.loading("Processing system documentation removal...");
+
             try {
               const res = await fetch(`${API_BASE}/${endpoint}/${id}`, {
                 method: 'DELETE',
                 headers: { 
-                  // ✅ Send the real key via standard Bearer and custom Header property tags
                   'Authorization': `Bearer ${activeToken}`,
                   'x-api-key': activeToken,
                   'Content-Type': 'application/json'
@@ -768,6 +808,9 @@ const AdminDashboard = () => {
 
               const resData = await res.json();
 
+              // 3. Clear out the persistent loader right before showing your results payload
+              toast.dismiss(structuralSyncToast);
+
               if (res.ok || resData.success) {
                 toast.success(resData.message || "Successfully deleted!");
                 fetchAllData();
@@ -775,6 +818,9 @@ const AdminDashboard = () => {
                 toast.error(resData.message || "Failed to delete record.");
               }
             } catch (err) {
+              // 4. ✅ CRITICAL FIX: Make sure the loading toast is cleared if a network drop happens
+              toast.dismiss(structuralSyncToast);
+              console.error("Deletion network breakdown:", err);
               toast.error("An error occurred during database cleanup.");
             }
           }}

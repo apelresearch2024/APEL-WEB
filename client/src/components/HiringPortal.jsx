@@ -36,7 +36,9 @@ const HiringPortal = () => {
           setVacancies(result.data || []);
         }
       } catch (err) {
-        toast.error("Error querying open vacancies:", err);
+        console.error("Vacancies query breakdown:", err);
+        // ✅ FIXED: Separated message payload into a valid template string context
+        toast.error(`Error querying open vacancies: ${err.message || err}`);
       } finally {
         setVacanciesLoading(false);
       }
@@ -106,20 +108,28 @@ const HiringPortal = () => {
       
       const result = await res.json();
       
-      if (result.success) {
+      if (res.ok || result.success) {
         setIsSubmitted(true);
         setFormData({ fullName: '', email: '', contact: '', vacancyId: '', statement: '' });
         setResumeFile(null);
+        
+        // ✅ CLEANUP: Explicitly reset the native file DOM input reference value
+        const uploader = document.getElementById('resume-uploader');
+        if (uploader) uploader.value = '';
+
         // Clean error feedback states upon routing success
         setSubmitError('');
         setFileError('');
+        toast.success("Application package uploaded successfully!");
         setTimeout(() => setIsSubmitted(false), 5000);
       } else {
         // Capture specific failure feedback strings straight from backend middlewares
         throw new Error(result.message || 'The server rejected submission parameters.');
       }
     } catch (err) {
-      toast.error('Submission processing failure:', err);
+      console.error("Form submission trace error:", err);
+      // ✅ FIXED: Removed object passing parameter syntax causing native toast runtime crashes
+      toast.error(`Submission processing failure: ${err.message || err}`);
       setSubmitError(err.message || 'System unable to route application. Please try again later.');
     } finally {
       setIsSubmitting(false);
@@ -241,7 +251,7 @@ const HiringPortal = () => {
                     <div className="space-y-1.5">
                       <label className="block text-slate-700 font-bold">Email Address</label>
                       <input
-                        type="type"
+                        type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleInputChange}
