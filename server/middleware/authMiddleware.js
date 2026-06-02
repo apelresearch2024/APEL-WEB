@@ -15,7 +15,6 @@ export const protect = async (req, res, next) => {
   if (!providedKey) {
     return res.status(401).json({ success: false, message: 'Access Denied: Operational Key Missing.' });
   }
-
   // 3. Fallback tracking to catch both key naming styles used across server.js and .env
   const MASTER_KEY = process.env.ADMIN_SECRET_KEY || process.env.ADMIN_API_KEY;
   if (providedKey !== MASTER_KEY) {

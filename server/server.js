@@ -20,6 +20,8 @@ import hiringRouter from './routes/hiring.js';
 import photoRoutes from './routes/photoRoutes.js';
 import { initDriveService } from './config/driveService.js';
 import Admin from './models/Admin.js';
+import adminApplicationsRouter from './routes/adminApplications.js';
+import { protect } from './middleware/authMiddleware.js'; 
 // Environment Configuration Initialization
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, '.env') });
@@ -123,9 +125,9 @@ app.use('/api/achievements', apelAchievementsRouter);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/vacancies', vacancyRoutes);
 app.use('/api/publications', publicationRoutes);
-app.use('/api', hiringRouter);
+app.use('/api/admin', protect, adminApplicationsRouter);
 app.use('/api/photos', photoRoutes);
-
+app.use('/api', hiringRouter);
 app.get('/', (req, res) => {
   res.send('IIT Roorkee - APEL Lab Central Engine API Cluster Running.');
 });

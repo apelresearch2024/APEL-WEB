@@ -23,7 +23,7 @@ const ApplicationsDashboard = () => {
   const [error, setError] = useState('');
   const [activeFilter, setActiveFilter] = useState('All'); // Options: 'All' | 'Pending' | 'Shortlisted'
 
-  const token = localStorage.getItem('adminToken');
+  const token = localStorage.getItem('token');
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
   useEffect(() => {

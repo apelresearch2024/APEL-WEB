@@ -28,7 +28,7 @@ const applicationSchema = new mongoose.Schema({
   },
   resumeUrl: { 
     type: String, 
-    required: true // Validated Supabase storage file link
+    required: true 
   },
   status: { 
     type: String, 

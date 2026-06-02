@@ -5,7 +5,7 @@ import Application from '../models/Application.js';
 const router = express.Router();
 
 // 1. GET: Fetch all applications with job details populated
-router.get('/admin/applications', async (req, res) => {
+router.get('/applications', async (req, res) => {
   try {
     const applications = await Application.find()
       .populate('vacancyId', 'title') // Automatically fetches only the title from the Vacancy collection
@@ -20,12 +20,11 @@ router.get('/admin/applications', async (req, res) => {
   }
 });
 
-// 2. PATCH: Update applicant pipeline status (Shortlist / Reject)
-router.patch('/admin/applications/:id/status', async (req, res) => {
+router.put('/applications/:id/status', async (req, res) => {
   const { status } = req.body;
   
-  // Guard clause against malicious/invalid status updates
-  if (!['Shortlisted', 'Rejected'].includes(status)) {
+  // Note: Your frontend sets status to 'Pending' or 'Shortlisted'
+  if (!['Pending', 'Shortlisted', 'Rejected'].includes(status)) {
     return res.status(400).json({ success: false, message: 'Invalid status update.' });
   }
 
