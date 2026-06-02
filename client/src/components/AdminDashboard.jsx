@@ -1103,7 +1103,7 @@ const AdminDashboard = () => {
                     {/* Row 5: Domain Area Topic */}
                     <div>
                       <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Primary Domain / Core Research Focus Topic</label>
-                      <input type="text" value={scholarForm.researchTopic || ''} onChange={(e) => setScholarForm({ ...scholarForm, researchTopic: e.target.value })} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white transition-colors" placeholder="e.g. Wide Bandgap Semiconductor Inverters" required />
+                      <input type="text" value={scholarForm.researchTopic || ''} onChange={(e) => setScholarForm({ ...scholarForm, researchTopic: e.target.value })} className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-slate-50 focus:bg-white transition-colors" placeholder="e.g. Wide Bandgap Semiconductor Inverters" required={scholarForm.status === 'Current'} />
                     </div>
 
                     <button type="submit" disabled={loading} className="bg-[#0b1b3d] hover:bg-[#112754] text-white px-5 py-2.5 rounded-lg text-xs font-bold tracking-wide uppercase w-full sm:w-auto shadow transition-all">{loading ? 'Publishing details...' : 'Add Scholar Profile'}</button>
