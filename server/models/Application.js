@@ -27,8 +27,8 @@ const applicationSchema = new mongoose.Schema({
     trim: true
   },
   resumeUrl: { 
-    type: String, 
-    required: true 
+    id: String,
+    webViewLink: String
   },
   status: { 
     type: String, 
