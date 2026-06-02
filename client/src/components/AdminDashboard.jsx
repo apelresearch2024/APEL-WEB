@@ -178,58 +178,75 @@ const AdminDashboard = () => {
 
   // --- API WRITE (CREATE) OPERATION ---
   const handleFormSubmit = async (e, endpoint, formData, resetForm, fallbackState) => {
-    e.preventDefault();
-    setLoading(true);
-    const activeToken = localStorage.getItem('adminToken');
-    if (!activeToken || activeToken === 'undefined') {
-      toast.error('Administrative token missing. Please log back in.');
-      setLoading(false);
-      return;
-    }
-    try {
-      const data = new FormData();
+  e.preventDefault();
+  setLoading(true);
 
-      Object.keys(formData).forEach((key) => {
-        if (key === 'pdfFile' || key === 'imageFile') {
-          if (formData[key]) data.append(key, formData[key]);
+  const activeToken = localStorage.getItem('adminToken');
+  if (!activeToken || activeToken === 'undefined') {
+    toast.error('Administrative token missing. Please log back in.');
+    setLoading(false);
+    return;
+  }
+
+  try {
+    const data = new FormData();
+
+    // Loop through keys and handle file assets vs textual parameters flawlessly
+    Object.keys(formData).forEach((key) => {
+      if (key === 'pdfFile' || key === 'imageFile') {
+        if (formData[key]) {
+          data.append(key, formData[key]);
         }
-        else {
-          const value = formData[key];
-          if (value !== null && value !== undefined) {
-            data.append(key, value);
-          } else {
-            data.append(key, ''); // Safe fallback string
-          }
+      } else {
+        const value = formData[key];
+        // ✅ CORRECTION: Coerce text/numbers safely to plain strings 
+        // to comply perfectly with modern multi-part FormData specifications.
+        if (value !== null && value !== undefined && value !== '') {
+          data.append(key, String(value));
+        } else {
+          data.append(key, ''); // Safe fallback blank string for backend schemas
         }
-      });
-      if (endpoint === 'projects' && formData.status === 'Ongoing' && formData.startDate) {
+      }
+    });
+
+    // Handle project duration logic cleanly
+    if (endpoint === 'projects' && formData.status === 'Ongoing' && formData.startDate) {
+      if (typeof formatMonthYear === 'function') {
         data.append('duration', `${formatMonthYear(formData.startDate)}`);
       }
-
-      const response = await fetch(`${API_BASE}/${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${activeToken}`,
-          'x-api-key': activeToken
-        },
-        body: data
-      });
-
-      const resData = await response.json();
-
-      if (response.ok || resData.success) {
-        toast.success(resData.message || 'Record successfully integrated.');
-        resetForm(fallbackState);
-        fetchAllData();
-      } else {
-        toast.error(resData.message || 'Validation error.');
-      }
-    } catch (err) {
-      toast.error('Network failure connecting with remote server.');
-    } finally {
-      setLoading(false);
     }
-  };
+
+    const response = await fetch(`${API_BASE}/${endpoint}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${activeToken}`,
+        'x-api-key': activeToken
+        // Note: Let the browser automatically calculate content boundaries. 
+        // Do NOT pass a Content-Type here.
+      },
+      body: data
+    });
+
+    const resData = await response.json();
+
+    if (response.ok || resData.success) {
+      toast.success(resData.message || 'Record successfully integrated.');
+      if (typeof resetForm === 'function') {
+        resetForm(fallbackState);
+      }
+      if (typeof fetchAllData === 'function') {
+        fetchAllData();
+      }
+    } else {
+      toast.error(resData.message || 'Validation error.');
+    }
+  } catch (err) {
+    toast.error('Network failure connecting with remote server.');
+    console.error("Form submission trace error:", err);
+  } finally {
+    setLoading(false);
+  }
+};
   const handleAchievementSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
