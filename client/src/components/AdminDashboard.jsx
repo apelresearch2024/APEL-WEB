@@ -2533,10 +2533,6 @@ const AdminDashboard = () => {
                             />
                           </div>
 
-                          <p className="text-[10px] text-slate-500 mt-2 truncate">
-                            {photo.caption || "No caption"}
-                          </p>
-
                           <div className="mt-3 pt-2 border-t border-slate-100 flex justify-end">
                             <button
                               type="button"
