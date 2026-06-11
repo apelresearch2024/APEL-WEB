@@ -13,7 +13,6 @@ const Scholars = () => {
         const res = await fetch(`${API_BASE}/scholars`);
         const result = await res.json();
         if (result.success) {
-          // Filter to only display "Current" active researchers on this main roster page
           const activeRoster = (result.data || []).filter(s => s.status !== 'Alumni');
           setScholars(activeRoster);
         }
@@ -29,15 +28,13 @@ const Scholars = () => {
   const getDirectDriveUrl = (url) => {
   if (!url || typeof url !== 'string') return '';
 
-  // 1. If it's already a direct Googleusercontent link, return as is
   if (url.includes('googleusercontent.com')) return url;
 
-  // 2. Extract ID safely
   const match = url.match(/\/d\/([^/]+)/);
   const fileId = match ? match[1] : null;
 
   if (fileId) {
-    // Return the standard thumbnail proxy
+
     return `https://lh3.googleusercontent.com/d/${fileId}`;
   }
 
@@ -96,7 +93,7 @@ const Scholars = () => {
               <Users size={28} strokeWidth={2.5} />
             </div>
             <div>
-              <h1 className="text-3xl font-extrabold text-[#0b1b3d] tracking-tight">Research Scholars</h1>
+              <h1 className="text-3xl font-extrabold text-[#0b1b3d] tracking-tight">Our Team</h1>
               <p className="text-sm text-slate-500 mt-1 font-medium">
                 Meet the minds pushing the boundaries of power electronics engineering at APEL Lab.
               </p>
@@ -132,7 +129,6 @@ const Scholars = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                   {group.list.map((scholar) => {
-                    // 🔥 FIX: Polymorphic string extraction for mixed database schemas (String URL vs Object structure)
                     const targetImageSrc = scholar.imageUrl && typeof scholar.imageUrl === 'object'
                       ? scholar.imageUrl.webViewLink
                       : scholar.imageUrl;
