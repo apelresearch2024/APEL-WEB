@@ -16,7 +16,9 @@ const projectSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Project duration timeline is required']
   },
-  startDate: { type: Date },
+  startDate: { 
+    type: Date 
+  },
   grantValue: {
     type: String,
   },
@@ -29,10 +31,10 @@ const projectSchema = new mongoose.Schema({
     type: String,
     default: ''
   },
- pdfUrl: {
-  id: String,
-  webViewLink: String
-},
+  pdfUrl: {
+    id: String,
+    webViewLink: String
+  },
   status: {
     type: String,
     required: true,

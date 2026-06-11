@@ -8,7 +8,6 @@ export const adminLogin = async (req, res) => {
     const { email, password } = req.body;
 
     const admin = await Admin.findOne({ email });
-    console.log(admin)
     if (!admin) {
       return res.status(401).json({
         success: false,
@@ -16,7 +15,6 @@ export const adminLogin = async (req, res) => {
       });
     }
     const isMatch = await admin.comparePassword(password);
-    console.log(isMatch)
     if (!isMatch) {
       return res.status(401).json({
         success: false,
@@ -38,13 +36,11 @@ export const adminLogin = async (req, res) => {
   }
 };
 
-// Inside controllers/authController.js
 
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
-    // 1. STAGE ONE GUARD: Verify the email matches your official APEL Lab administrative email
     const MASTER_EMAIL = process.env.EMAIL_USER; 
     
     if (email.toLowerCase().trim() !== MASTER_EMAIL.toLowerCase()) {
@@ -54,7 +50,6 @@ export const forgotPassword = async (req, res) => {
       });
     }
 
-    // 2. STAGE TWO GUARD: Double-check that this record exists inside your MongoDB collection
     const admin = await Admin.findOne({ email: email.toLowerCase().trim() });
     
     if (!admin) {
@@ -64,9 +59,6 @@ export const forgotPassword = async (req, res) => {
       });
     }
 
-    // =========================================================================
-    // 3. CODE EXECUTION: (The rest of your token & email sending code remains the same)
-    // =========================================================================
     const rawToken = crypto.randomBytes(20).toString('hex');
     admin.resetPasswordToken = crypto.createHash('sha256').update(rawToken).digest('hex');
     admin.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 Minute window

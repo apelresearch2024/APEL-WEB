@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LuLogIn, LuMenu, LuX, LuLogOut } from 'react-icons/lu'; 
+import { LuLogIn, LuMenu, LuX, LuLogOut } from 'react-icons/lu';
 import apelLogo from '../assets/APEL_Logo.jpeg';
 
 const Navbar = () => {
@@ -14,7 +14,9 @@ const Navbar = () => {
     const token = localStorage.getItem('adminToken');
     setIsLoggedIn(!!token);
   }, [location]);
-
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
     setIsLoggedIn(false);
@@ -64,7 +66,7 @@ const Navbar = () => {
             <li><NavLink to="/publications" className={getLinkClass}>Publications</NavLink></li>
             <li><NavLink to="/achievements" className={getLinkClass}>Achievements</NavLink></li>
             <li><NavLink to="/hiring" className={getLinkClass}>Hiring Portal</NavLink></li>
-            
+
             {/* Desktop Admin View Gates */}
             {isLoggedIn && (
               <li><NavLink to="/admin/dashboard" className={getLinkClass}>Dashboard</NavLink></li>
