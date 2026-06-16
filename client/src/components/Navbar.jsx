@@ -121,7 +121,7 @@ const Navbar = () => {
         <div className="lg:hidden w-full bg-[#081530] border-t border-slate-800/80 px-6 py-4 shadow-inner">
           <ul className="flex flex-col space-y-4 text-[13px] font-medium text-slate-300">
             <li onClick={() => setIsOpen(false)}><NavLink to="/" end className={getLinkClass}>Home</NavLink></li>
-            <li onClick={() => setIsOpen(false)}><NavLink to="/scholars" className={getLinkClass}>Scholars</NavLink></li>
+            <li onClick={() => setIsOpen(false)}><NavLink to="/scholars" className={getLinkClass}>Team</NavLink></li>
             <li onClick={() => setIsOpen(false)}><NavLink to="/ongoing-projects" className={getLinkClass}>Ongoing Projects</NavLink></li>
             <li onClick={() => setIsOpen(false)}><NavLink to="/completed-projects" className={getLinkClass}>Completed Projects</NavLink></li>
             <li onClick={() => setIsOpen(false)}><NavLink to="/publications" className={getLinkClass}>Publications</NavLink></li>
