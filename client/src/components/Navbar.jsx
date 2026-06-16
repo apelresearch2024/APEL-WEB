@@ -60,7 +60,7 @@ const Navbar = () => {
         <nav className="hidden lg:flex">
           <ul className="flex items-center space-x-4 xl:space-x-6 text-[12px] font-medium tracking-wide">
             <li><NavLink to="/" end className={getLinkClass}>Home</NavLink></li>
-            <li><NavLink to="/scholars" className={getLinkClass}>Our Team</NavLink></li>
+            <li><NavLink to="/scholars" className={getLinkClass}>Team</NavLink></li>
             <li><NavLink to="/ongoing-projects" className={getLinkClass}>Ongoing Projects</NavLink></li>
             <li><NavLink to="/completed-projects" className={getLinkClass}>Completed Projects</NavLink></li>
             <li><NavLink to="/publications" className={getLinkClass}>Publications</NavLink></li>
