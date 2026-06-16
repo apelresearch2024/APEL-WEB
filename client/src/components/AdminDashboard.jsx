@@ -112,7 +112,7 @@ const AdminDashboard = () => {
       navigate('/admin-login');
     }
   }, [token, navigate]);
-
+  
   //Auto scroll up on changing the tab
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -122,8 +122,21 @@ const AdminDashboard = () => {
     const date = new Date(dateInput);
     return date.toLocaleString('default', { month: 'short', year: 'numeric' });
   };
-
+  
   // --- API READ OPERATIONS ---
+  const fetchPhotos = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/photos`);
+      const result = await res.json();
+      if (result.success) {
+        setPhotosList(result.data || []);
+      } else {
+        toast.error("Database rejected photo asset pull requested.");
+      }
+    } catch (err) {
+      toast.error("Failed to connect to backend photo storage endpoint:");
+    }
+  };
   const fetchAllData = useCallback(async () => {
     try {
       const headers = {
@@ -167,7 +180,7 @@ const AdminDashboard = () => {
       if (dPublications.success) {
         setPublications(dPublications.data || dPublications);
       }
-
+      fetchPhotos();
     } catch (err) {
       console.error('Database pool reading error:', err);
     }
@@ -461,19 +474,6 @@ const AdminDashboard = () => {
   /**
    * 1. Fetches all active photos from the backend database 
    */
-  const fetchPhotos = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/photos`);
-      const result = await res.json();
-      if (result.success) {
-        setPhotosList(result.data || []);
-      } else {
-        toast.error("Database rejected photo asset pull requested.");
-      }
-    } catch (err) {
-      toast.error("Failed to connect to backend photo storage endpoint:");
-    }
-  };
 
   /**
    * 2. Compiles file payloads and handles the multi-part upload pipeline
@@ -579,7 +579,7 @@ const AdminDashboard = () => {
 
     try {
       // 2. Pass the token using both standard bearer and header formats
-      const response = await fetch(`${API_BASE}/gallery/${photoId}`, {
+      const response = await fetch(`${API_BASE}/photos/${photoId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${activeToken}`,
