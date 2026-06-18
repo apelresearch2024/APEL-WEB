@@ -8,7 +8,6 @@ const HomeContent = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [loadingAnnouncements, setLoadingAnnouncements] = useState(true);
 
-  // Gallery Dynamic State Setup
   const [photos, setPhotos] = useState([]);
   const [loadingPhotos, setLoadingPhotos] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -16,7 +15,6 @@ const HomeContent = () => {
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
   const navigate = useNavigate();
 
-  // 1. Fetch Live Image Gallery from Backend
   useEffect(() => {
     const fetchLiveGallery = async () => {
       try {
@@ -118,21 +116,27 @@ const HomeContent = () => {
                   </div>
                 ) : (
                   <>
-                    <img
+                    {/* <img
                       src={photos[currentSlide].url.includes('drive.google.com')
-                        // Corrected: Use ${} for template literal interpolation
                         ? `https://lh3.googleusercontent.com/d/${photos[currentSlide].url.split('/d/')[1].split('/')[0]}=w800`
                         : photos[currentSlide].url
                       }
                       alt="APEL Laboratory Facility"
-                      // Keep object-cover to ensure it fills the container
-                      // Keep object-center so the middle of the photo is always visible
                       className="w-full h-full object-cover object-center transition-all duration-700 ease-in-out"
                       onError={(e) => {
-                        e.target.src = "https://via.placeholder.com/800x400?text=Image+Load+Error";
+                        e.target.src = none;
                       }}
-                    />
-
+                    /> */}
+                    <img
+  src={photos[currentSlide].url.includes('drive.google.com')
+                        ? `https://lh3.googleusercontent.com/d/${photos[currentSlide].url.split('/d/')[1].split('/')[0]}=w800`
+                        : photos[currentSlide].url
+                      }
+  alt="Gallery"
+  onError={(e) => {
+    console.log("Failed:", e.target.src);
+  }}
+/>
                     {/* Left/Right Directional Controls */}
                     {photos.length > 1 && (
                       <>

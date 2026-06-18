@@ -5,6 +5,9 @@ const PhotoSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  driveId: {
+    type: String,
+  },
   date: {
     type: Date,
     default: Date.now,

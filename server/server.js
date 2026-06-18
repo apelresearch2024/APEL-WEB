@@ -69,7 +69,7 @@ app.use(cors({
     if (!origin) return callback(null, true);
     
     if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true); // Origin is allowed
+      callback(null, true);
     } else {
       callback(new Error('Blocked by CORS policy: Unauthorized Origin'));
     }

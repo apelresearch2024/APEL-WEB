@@ -2,12 +2,12 @@ import express from 'express';
 import Achievement from '../models/Achievement.js';
 import { protect } from '../middleware/authMiddleware.js';
 
-const achievementRouter = express.Router(); // Fixed spelling
+const achievementRouter = express.Router();
 
 // GET all
 achievementRouter.get('/', async (req, res) => {
   try {
-    const achievements = await Achievement.find({}).sort({ createdAt: -1 }); // Changed to createdAt for more reliable ordering
+    const achievements = await Achievement.find({}).sort({ createdAt: -1 }); 
     res.status(200).json({ success: true, data: achievements });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -24,7 +24,7 @@ achievementRouter.post('/', protect, async (req, res) => {
   }
 });
 
-// PUT update (Required for your Edit functionality)
+// PUT update 
 achievementRouter.put('/:id', protect, async (req, res) => {
   try {
     const updatedAchievement = await Achievement.findByIdAndUpdate(

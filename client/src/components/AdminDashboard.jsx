@@ -112,7 +112,7 @@ const AdminDashboard = () => {
       navigate('/admin-login');
     }
   }, [token, navigate]);
-  
+
   //Auto scroll up on changing the tab
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -122,7 +122,7 @@ const AdminDashboard = () => {
     const date = new Date(dateInput);
     return date.toLocaleString('default', { month: 'short', year: 'numeric' });
   };
-  
+
   // --- API READ OPERATIONS ---
   const fetchPhotos = async () => {
     try {
@@ -245,7 +245,6 @@ const AdminDashboard = () => {
     e.preventDefault();
     setLoading(true);
 
-    // ✅ FIX: Extract the valid token stored by your login page
     const activeToken = localStorage.getItem('adminToken');
 
     if (!activeToken || activeToken === 'undefined') {
@@ -259,7 +258,6 @@ const AdminDashboard = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // ✅ FIX: Attach the confirmed active token string
           'Authorization': `Bearer ${activeToken}`,
           'x-api-key': activeToken
         },
@@ -290,10 +288,8 @@ const AdminDashboard = () => {
         const formData = new FormData(e.target);
         const graduationYear = formData.get('graduationYear') || currentYear;
 
-        // Clear out the custom toast layout right away
         toast.remove(t.id);
 
-        // ✅ FIX: Read token during confirm click context
         const activeToken = localStorage.getItem('adminToken');
         if (!activeToken || activeToken === 'undefined') {
           toast.error('Session expired or unauthorized. Please re-login.');
@@ -471,13 +467,7 @@ const AdminDashboard = () => {
   }, [scholarsList, activeTab]);
   // ================= CORE GALLERY API FUNCTIONS =================
 
-  /**
-   * 1. Fetches all active photos from the backend database 
-   */
 
-  /**
-   * 2. Compiles file payloads and handles the multi-part upload pipeline
-   */
   const handleUpload = async () => {
     if (!imageForm.file) {
       toast.error("Please select an image file first.");
@@ -517,9 +507,7 @@ const AdminDashboard = () => {
     }
   };
 
-  /**
-   * 3. Triggers target deletion criteria to clear out records and physical local files
-   */
+
   const handleDelete = async (photoId) => {
     if (!photoId) return;
 
@@ -565,7 +553,6 @@ const AdminDashboard = () => {
     });
   };
 
-  // Separate the logic to perform the deletion
   const executeDelete = async (photoId) => {
     // 1. Pull the real admin token out of browser storage
     const activeToken = localStorage.getItem('adminToken');
@@ -613,7 +600,6 @@ const AdminDashboard = () => {
       fetchPhotos();
     }
   }, [activeTab]);
-  // Handler for setting form state when editing a scholar
   const handleEditClick = (scholar) => {
     setScholarForm({
       _id: scholar._id,
@@ -631,10 +617,6 @@ const AdminDashboard = () => {
     setIsEditingScholar(true);
   };
 
-  /**
-  * 1. Unified Edit Initiation Handler
-  * Dynamically maps project details to either the ongoing or completed form states
-  */
   const startProjectEdit = (project, type) => {
     setEditingId(project._id);
     setEditingType(type);
@@ -665,10 +647,7 @@ const AdminDashboard = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  /**
-   * 2. Unified Update Submit Handler
-   * Packages Form Data dynamically and dispatches to the same backend route structure
-   */
+
   const submitProjectUpdate = async (e, type) => {
     e.preventDefault();
     setLoading(true);
@@ -2030,7 +2009,18 @@ const AdminDashboard = () => {
                       </div>
                     </div>
 
-                    <button type="submit" className="md:col-span-2 bg-[#0b1b3d] hover:bg-[#112754] text-white py-2.5 rounded-lg text-sm font-bold uppercase tracking-wide shadow transition-all">Publish Vacancy</button>
+                    <button
+  type="submit"
+  disabled={loading}
+  className={`md:col-span-2 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wide shadow transition-all
+    ${
+      loading
+        ? "bg-gray-400 cursor-not-allowed text-gray-100"
+        : "bg-[#0b1b3d] hover:bg-[#112754] text-white"
+    }`}
+>
+  {loading ? "Publishing..." : "Publish Vacancy"}
+</button>
                   </form>
                 </div>
 
@@ -2044,7 +2034,16 @@ const AdminDashboard = () => {
                         <p className="text-[10px] text-red-600 font-bold uppercase mt-1 tracking-wider">Deadline: {job.deadline}</p>
                       </div>
                       <div className="flex gap-2">
-                        {job.pdfPath && <a href={`http://localhost:5000${job.pdfPath}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-xs font-bold border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50">VIEW PDF</a>}
+                        {job.pdfPath?.webViewLink && (
+                          <a
+                            href={job.pdfPath.webViewLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 text-xs font-bold border border-blue-200 px-3 py-1.5 rounded-lg hover:bg-blue-50"
+                          >
+                            VIEW PDF
+                          </a>
+                        )}
                         <button onClick={() => handleItemDelete('vacancies', job._id)} className="text-red-600 text-xs font-bold border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50">REMOVE</button>
                       </div>
                     </div>
@@ -2538,6 +2537,7 @@ const AdminDashboard = () => {
                           {/* Explicitly defined height for the container */}
                           <div className="w-full h-36 bg-slate-200 rounded-lg overflow-hidden relative border border-black">
                             <img
+                            loading="lazy"
                               src={photo.url.includes('drive.google.com')
                                 ? `https://lh3.googleusercontent.com/d/${photo.url.split('/d/')[1].split('/')[0]}`
                                 : photo.url
@@ -2546,7 +2546,6 @@ const AdminDashboard = () => {
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               onError={(e) => {
                                 console.error("Image failed to load:", e.target.src);
-                                // Remove the image element or set a placeholder
                                 e.target.style.display = 'none';
                               }}
                             />

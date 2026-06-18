@@ -45,7 +45,6 @@ export const uploadPdfToDrive = async (fileBuffer, originalName, mimeType) => {
       fields: 'id, webViewLink'
     });
 
-    // Make file public
     await driveClient.permissions.create({
       fileId: response.data.id,
       requestBody: { role: 'reader', type: 'anyone' },

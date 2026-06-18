@@ -3,13 +3,12 @@ import multer from 'multer';
 import Announcement from '../models/Announcements.js';
 
 const announcementRouter = express.Router();
-const upload = multer(); // Used for parsing multipart/form-data
+const upload = multer(); 
 
 announcementRouter.post('/', upload.none(), async (req, res) => {
   try {
     const { title, description, date } = req.body;
 
-    // Basic server-side validation
     if (!title || !description || !date) {
       return res.status(400).json({ success: false, message: "Missing required fields" });
     }

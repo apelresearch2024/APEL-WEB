@@ -2,14 +2,12 @@ import express from 'express';
 import multer from 'multer';
 import nodemailer from 'nodemailer';
 import Application from '../models/Application.js';
-import { uploadPdfToDrive } from '../config/driveService.js'; // Imports your Google Drive integration engine
+import { uploadPdfToDrive } from '../config/driveService.js'; 
 
 const router = express.Router();
 
-// ==========================================
-// 1. CONFIGURATION & EMAIL TRANSPORTER SETUP
-// ==========================================
 
+// 1. CONFIGURATION & EMAIL TRANSPORTER SETUP
 const emailTransporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -31,9 +29,7 @@ const upload = multer({
   }
 });
 
-// ==========================================
 // 2. PUBLIC ENDPOINT: APPLICANT SUBMISSION
-// ==========================================
 router.post('/applications', upload.single('resume'), async (req, res) => {
   try {
     const { fullName, email, contact, vacancyId, statement } = req.body;
@@ -42,25 +38,21 @@ router.post('/applications', upload.single('resume'), async (req, res) => {
       return res.status(400).json({ success: false, message: 'Resume file is required.' });
     }
 
-    // 1. Stream file straight to Google Drive instead of Supabase
-    // This utilizes your professor's cloud storage instantly for free
     const publicDriveUrl = await uploadPdfToDrive(
       req.file.buffer,
       req.file.originalname,
       req.file.mimetype
     );
 
-    // 2. Save document data cleanly to your persistent MongoDB Layer
     const newApplication = await Application.create({
       vacancyId,
       applicantName: fullName,
       applicantEmail: email,
       contact,
       statement,
-      resumeUrl: publicDriveUrl // Safe, permanent viewer url
+      resumeUrl: publicDriveUrl 
     });
 
-    // 3. Dispatch Email Notification
     const emailOptions = {
       from: process.env.EMAIL_USER,
       to: process.env.ADMIN_EMAIL,
@@ -108,10 +100,7 @@ router.post('/applications', upload.single('resume'), async (req, res) => {
   }
 });
 
-// ==========================================
 // 3. SECURE ENDPOINTS: READABLE BY ADMIN ONLY
-// ==========================================
-
 // GET: Fetch all candidate submissions
 router.get('/admin/applications', async (req, res) => {
   try {
@@ -167,7 +156,7 @@ router.put('/admin/applications/:id/status', async (req, res) => {
   }
 });
 
-// DELETE: Cleans record data directly from MongoDB
+// DELETE: Cleans record data d
 router.delete('/admin/applications/:id', async (req, res) => {
   try {
     const token = req.headers['x-admin-token'];
@@ -182,8 +171,6 @@ router.delete('/admin/applications/:id', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Application not found.' });
     }
 
-    // Note: To preserve historical records inside your professor's cloud drive space,
-    // this removes the trace from the database index. The physical file remains on Drive.
     await Application.findByIdAndDelete(req.params.id);
 
     return res.status(200).json({
@@ -196,9 +183,7 @@ router.delete('/admin/applications/:id', async (req, res) => {
   }
 });
 
-// ==========================================
 // 4. GLOBAL ERROR INTERCEPTOR
-// ==========================================
 router.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     return res.status(400).json({ success: false, message: 'File size limit exceeded (Max 5MB).' });

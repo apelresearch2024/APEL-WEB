@@ -21,7 +21,7 @@ const upload = multer({ storage: multer.memoryStorage(),fileFilter: fileFilter }
 
 // ================= API ENDPOINTS =================
 
-// GET /api/photos
+// GET
 photoRouter.get('/', async (req, res) => {
     try {
         const photos = await Photo.find().sort({ date: -1 });
@@ -31,24 +31,22 @@ photoRouter.get('/', async (req, res) => {
     }
 });
 
-// POST /api/photos/upload
+// POST 
 photoRouter.post('/upload', upload.single('image'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ success: false, message: 'No file provided.' });
         }
 
-        // Upload buffer to Google Drive
         const driveData = await uploadPdfToDrive(
             req.file.buffer, 
             req.file.originalname, 
             req.file.mimetype
         );
 
-        // Save the webViewLink (or direct link) to your MongoDB
         const newPhoto = new Photo({ 
-            url: driveData.webViewLink, // Google Drive public view link
-            driveId: driveData.id       // Save this to delete later
+            url: driveData.webViewLink, 
+            driveId: driveData.id    
         });
         await newPhoto.save();
 
@@ -58,13 +56,12 @@ photoRouter.post('/upload', upload.single('image'), async (req, res) => {
     }
 });
 
-// DELETE /api/photos/:id
+// DELETE 
 photoRouter.delete('/:id', async (req, res) => {
     try {
         const photo = await Photo.findById(req.params.id);
         if (!photo) return res.status(404).json({ success: false, message: 'Record not found.' });
 
-        // Only attempt to delete from Drive if a driveId actually exists
         if (photo.driveId && photo.driveId.trim() !== "") {
             try {
                 await deleteFileFromDrive(photo.driveId);
@@ -74,7 +71,6 @@ photoRouter.delete('/:id', async (req, res) => {
             }
         }
 
-        // Always proceed to delete from MongoDB
         await photo.deleteOne();
         res.json({ success: true, message: 'Asset deleted successfully.' });
     } catch (err) {

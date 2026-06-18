@@ -1,18 +1,15 @@
 // backend/routes/adminApplications.js
 import express from 'express';
 import Application from '../models/Application.js';
-import { protect } from '../middleware/authMiddleware.js'; // Secure token routing validation
+import { protect } from '../middleware/authMiddleware.js'; 
 
 const router = express.Router();
 
-/**
- * 1. GET: Fetch all applications with job details populated
- */
 router.get('/applications', protect, async (req, res) => {
   try {
     const applications = await Application.find()
       .populate('vacancyId', 'title') 
-      .sort({ appliedAt: -1 }); // Newest submissions first
+      .sort({ appliedAt: -1 }); 
 
     res.status(200).json({
       success: true,
@@ -23,9 +20,7 @@ router.get('/applications', protect, async (req, res) => {
   }
 });
 
-/**
- * 2. PUT: Update an application status tracking marker
- */
+
 router.put('/applications/:id/status', protect, async (req, res) => {
   const { status } = req.body;
   
@@ -54,9 +49,7 @@ router.put('/applications/:id/status', protect, async (req, res) => {
   }
 });
 
-/**
- * 3. DELETE: Permanently purge application records
- */
+
 router.delete('/applications/:id', protect, async (req, res) => {
   try {
     const deletedApp = await Application.findByIdAndDelete(req.params.id);

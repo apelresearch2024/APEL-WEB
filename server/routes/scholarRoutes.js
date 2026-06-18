@@ -7,16 +7,12 @@ import PDFDocument from 'pdfkit';
 
 const scholarRouter = express.Router();
 
-// Configure local Multer memory storage to capture the file buffer
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
-
-// --- ROUTES ---
 
 // 1. GET Current Scholars Only (Excludes Alumni)
 scholarRouter.get('/', async (req, res) => {
   try {
-    // Filters out alumni so only active lab members load on the main roster
     const scholars = await Scholar.find({ status: { $ne: 'Alumni' } }).sort({ joinedYear: 1, createdAt: 1 });
     res.status(200).json({ success: true, data: scholars });
   } catch (err) {
@@ -29,24 +25,21 @@ scholarRouter.get('/alumni/pdf', async (req, res) => {
   try {
     const alumni = await Scholar.find({ status: 'Alumni' }).sort({ graduationYear: -1, joinedYear: -1 });
 
-    const doc = new PDFDocument({ size: 'A4', margin: 50 }); // Utilizing standard A4 structure
+    const doc = new PDFDocument({ size: 'A4', margin: 50 }); 
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'attachment; filename=APEL_Lab_Alumni_Roster.pdf');
     doc.pipe(res);
 
-    // Document Header Styling
     doc.fillColor('#0b1b3d').fontSize(22).font('Helvetica-Bold').text('APEL Research Laboratory', { align: 'center' });
     doc.fontSize(11).font('Helvetica-Oblique').fillColor('#64748b').text('Applied Power Electronics Lab, IIT Roorkee', { align: 'center' });
     doc.moveDown(1);
     doc.fontSize(14).font('Helvetica-Bold').fillColor('#1e293b').text('Alumni & Past Scholars Roster', { align: 'center' });
     doc.moveDown(2);
 
-    // Define Precise Column Grid Widths
     const colX = { name: 50, role: 180, tenure: 265, domain: 345, link: 495 };
     const colWidths = { name: 125, role: 80, tenure: 75, domain: 145, link: 50 };
 
-    // Render Table Header Line
     doc.strokeColor('#cbd5e1').lineWidth(1).moveTo(50, doc.y).lineTo(545, doc.y).stroke();
     doc.moveDown(0.4);
 
@@ -62,7 +55,6 @@ scholarRouter.get('/alumni/pdf', async (req, res) => {
     doc.strokeColor('#94a3b8').moveTo(50, doc.y).lineTo(545, doc.y).stroke();
     doc.moveDown(0.8);
 
-    // Render Dynamic Rows
     if (alumni.length === 0) {
       doc.moveDown(1);
       doc.fontSize(10).font('Helvetica').fillColor('#94a3b8').text('No archived alumni profiles are currently recorded in the registry.', 50, doc.y, { align: 'center' });
@@ -70,7 +62,6 @@ scholarRouter.get('/alumni/pdf', async (req, res) => {
       alumni.forEach((person) => {
         currentY = doc.y;
 
-        // Dynamic page breakdown safety margin guard
         if (currentY > 740) {
           doc.addPage();
           currentY = 50; 
@@ -184,7 +175,6 @@ scholarRouter.delete('/:id', protect, async (req, res) => {
 });
 
 // 6. Edit Scholar Record
-// 🔥 FIXED: Standardized auth guard with `protect` and normalized Google Drive object mapping
 scholarRouter.put('/:id', protect, upload.single('imageFile'), async (req, res) => {
   try {
     const { id } = req.params;
@@ -204,11 +194,9 @@ scholarRouter.put('/:id', protect, upload.single('imageFile'), async (req, res) 
       researchTopic
     };
 
-    // If a fresh image file asset is sent during modification, sync it to Drive
     if (req.file) {
       const driveResponse = await uploadPdfToDrive(req.file.buffer, req.file.originalname, req.file.mimetype);
       
-      // 🔥 FIX: Mapping structural object logic to match POST route behavior
       updateFields.imageUrl = {
         id: driveResponse.id,
         webViewLink: driveResponse.webViewLink

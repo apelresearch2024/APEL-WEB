@@ -9,9 +9,7 @@ const projectRouter = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// -------------------------------------------------------------
-// GET: Fetch Active Roster (Sorted by creation history pipeline)
-// -------------------------------------------------------------
+// GET: Fetch Active Roster 
 projectRouter.get('/', async (req, res) => {
   try {
     const projects = await Project.find({}).sort({ createdAt: -1 });
@@ -21,19 +19,16 @@ projectRouter.get('/', async (req, res) => {
   }
 });
 
-// -------------------------------------------------------------
+
 // POST: Initialize New Research Project Log
-// -------------------------------------------------------------
 projectRouter.post('/', protect, upload.single('pdfFile'), async (req, res) => {
   try {
     const projectData = { ...req.body };
 
-    // Explicitly fallback empty strings to guarantee model constraints stay happy
     if (projectData.grantValue === 'undefined') projectData.grantValue = '';
     if (projectData.fundingAgency === 'undefined') projectData.fundingAgency = '';
     if (projectData.outcome === 'undefined') projectData.outcome = '';
 
-    // If an application attachment is provided, stream it directly to your professor's Google Drive
     if (req.file) {
       const googleDriveUrl = await uploadPdfToDrive(
         req.file.buffer,
@@ -51,14 +46,12 @@ projectRouter.post('/', protect, upload.single('pdfFile'), async (req, res) => {
   }
 });
 
-// -------------------------------------------------------------
+
 // PUT: Modify Records or Toggle Completion States 
-// -------------------------------------------------------------
 projectRouter.put('/:id', protect, upload.single('pdfFile'), async (req, res) => {
   try {
     const projectData = { ...req.body };
 
-    // If an update payload passes a new file via multipart stream data
     if (req.file) {
       const googleDriveUrl = await uploadPdfToDrive(
         req.file.buffer,
@@ -70,7 +63,7 @@ projectRouter.put('/:id', protect, upload.single('pdfFile'), async (req, res) =>
 
     const updatedProject = await Project.findByIdAndUpdate(
       req.params.id, 
-      projectData, // Pass the parsed dataset body containing your new Google Drive pdfUrl
+      projectData, 
       { new: true, runValidators: true }
     );
 
@@ -85,9 +78,8 @@ projectRouter.put('/:id', protect, upload.single('pdfFile'), async (req, res) =>
   }
 });
 
-// -------------------------------------------------------------
+
 // DELETE: Drop Projects Out of Data Repositories
-// -------------------------------------------------------------
 projectRouter.delete('/:id', protect, async (req, res) => {
   try {
     const project = await Project.findByIdAndDelete(req.params.id);

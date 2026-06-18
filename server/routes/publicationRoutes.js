@@ -5,7 +5,7 @@ import Publication from '../models/Publications.js';
 const router = express.Router();
 const upload = multer(); 
 
-// 1. PUBLIC: Fetch all publication data streams
+// Fetch all publication 
 router.get('/', async (req, res) => {
   try {
     const data = await Publication.find().sort({ year: -1, createdAt: -1 });
@@ -15,10 +15,9 @@ router.get('/', async (req, res) => {
   }
 });
 
-// 2. SECURE ADMIN: Add a new entry (Matches handleFormSubmit perfectly)
+// Add a new entry 
 router.post('/', upload.none(), async (req, res) => {
   try {
-    // Read key from headers sent by your handleFormSubmit function
     const token = req.headers['x-api-key'] || req.headers['authorization']?.split(' ')[1];
     const expectedSecret = process.env.ADMIN_SECRET_KEY || process.env.VITE_ADMIN_SECRET_KEY;
 
@@ -28,7 +27,6 @@ router.post('/', upload.none(), async (req, res) => {
 
     const { type, title, authors, venue, detail, number, year, link } = req.body;
     
-    // Validation Layer (converting year to number since FormData sends everything as strings)
     if (!type || !title || !authors || !venue || !year) {
       return res.status(400).json({ success: false, message: 'Please complete all required fields.' });
     }
@@ -51,7 +49,7 @@ router.post('/', upload.none(), async (req, res) => {
   }
 });
 
-// 3. SECURE ADMIN: Delete a publication entry completely
+//Delete a publication entry completely
 router.delete('/:id', async (req, res) => {
   try {
     const token = req.headers['x-api-key'] || req.headers['authorization']?.split(' ')[1];
@@ -71,10 +69,9 @@ router.delete('/:id', async (req, res) => {
     return res.status(500).json({ success: false, message: 'Server drop exception.' });
   }
 });
-// 4. SECURE ADMIN: Modify an existing publication entry (Matches PUT workflow)
+//  Modify an existing publication entry 
 router.put('/:id', upload.none(), async (req, res) => {
   try {
-    // 1. Security Gate Check
     const token = req.headers['x-api-key'] || req.headers['authorization']?.split(' ')[1];
     const expectedSecret = process.env.ADMIN_SECRET_KEY || process.env.VITE_ADMIN_SECRET_KEY;
 
@@ -84,15 +81,12 @@ router.put('/:id', upload.none(), async (req, res) => {
 
     const { id } = req.params;
     
-    // Multer's upload.none() has now safely parsed the FormData into req.body
     const { type, title, authors, venue, detail, number, year, link } = req.body;
 
-    // 2. Validation Layer
     if (!type || !title || !authors || !venue || !year) {
       return res.status(400).json({ success: false, message: 'Required validation fields missing.' });
     }
 
-    // 3. Database Update
     const updatedPublication = await Publication.findOneAndUpdate(
       { _id: id }, 
       {

@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { LuAward, LuCalendar, LuLandmark } from 'react-icons/lu'; // Added LuLandmark
+import { LuAward, LuCalendar, LuLandmark } from 'react-icons/lu'; 
 import { Trophy } from 'lucide-react';
 
 const Achievements = () => {
-  // MOVE STATE HOOKS TO THE TOP
   const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All'); 
@@ -27,7 +26,6 @@ const Achievements = () => {
     fetchAchievements();
   }, [API_BASE]);
 
-  // NOW THIS WILL WORK
   const filteredAchievements = filter === 'All' 
     ? achievements 
     : achievements.filter(ach => ach.category === filter);

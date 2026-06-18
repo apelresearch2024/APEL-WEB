@@ -7,7 +7,10 @@ const VacancySchema = new mongoose.Schema({
   stipend: { type: String, required: true },
   slots: { type: String, required: true },
   deadline: { type: String, required: true },
-  pdfPath: { type: String },
+  pdfPath: {
+    id: String,
+    webViewLink: String
+},
   createdAt: { type: Date, default: Date.now }
 });
 
