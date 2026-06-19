@@ -25,7 +25,6 @@ const HiringPortal = () => {
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
 
-  // Native data acquisition on initial component mounting frame
   useEffect(() => {
     const fetchVacancies = async () => {
       try {
@@ -37,7 +36,6 @@ const HiringPortal = () => {
         }
       } catch (err) {
         console.error("Vacancies query breakdown:", err);
-        // ✅ FIXED: Separated message payload into a valid template string context
         toast.error(`Error querying open vacancies: ${err.message || err}`);
       } finally {
         setVacanciesLoading(false);
@@ -113,22 +111,18 @@ const HiringPortal = () => {
         setFormData({ fullName: '', email: '', contact: '', vacancyId: '', statement: '' });
         setResumeFile(null);
         
-        // ✅ CLEANUP: Explicitly reset the native file DOM input reference value
         const uploader = document.getElementById('resume-uploader');
         if (uploader) uploader.value = '';
 
-        // Clean error feedback states upon routing success
         setSubmitError('');
         setFileError('');
         toast.success("Application package uploaded successfully!");
         setTimeout(() => setIsSubmitted(false), 5000);
       } else {
-        // Capture specific failure feedback strings straight from backend middlewares
         throw new Error(result.message || 'The server rejected submission parameters.');
       }
     } catch (err) {
       console.error("Form submission trace error:", err);
-      // ✅ FIXED: Removed object passing parameter syntax causing native toast runtime crashes
       toast.error(`Submission processing failure: ${err.message || err}`);
       setSubmitError(err.message || 'System unable to route application. Please try again later.');
     } finally {

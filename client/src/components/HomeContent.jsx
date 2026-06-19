@@ -128,15 +128,15 @@ const HomeContent = () => {
                       }}
                     /> */}
                     <img
-  src={photos[currentSlide].url.includes('drive.google.com')
+                      src={photos[currentSlide].url.includes('drive.google.com')
                         ? `https://lh3.googleusercontent.com/d/${photos[currentSlide].url.split('/d/')[1].split('/')[0]}=w800`
                         : photos[currentSlide].url
                       }
-  alt="Gallery"
-  onError={(e) => {
-    console.log("Failed:", e.target.src);
-  }}
-/>
+                      alt="Gallery"
+                      onError={(e) => {
+                        console.log("Failed:", e.target.src);
+                      }}
+                    />
                     {/* Left/Right Directional Controls */}
                     {photos.length > 1 && (
                       <>
