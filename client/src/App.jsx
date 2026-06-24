@@ -1,4 +1,3 @@
-// src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
@@ -16,8 +15,8 @@ import AdminDashboard from './components/AdminDashboard';
 import AnnouncementsPage from './components/Announcements';
 import { Toaster } from 'react-hot-toast';
 import ResetPassword from './components/ResetPassword';
-// 1. FIXED: Imported component with PascalCase convention
 import ApplicationsDashboard from './components/ApplicationDashboard';
+import ScrollToTop from './components/ScrollToTop';
 
 export default function App() {
   return (
@@ -60,7 +59,6 @@ export default function App() {
         <Route path="/admin/applicationsDashboard" element={<ApplicationsDashboard />} />
         <Route path="/admin/" element={<ApplicationsDashboard />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-        
         {/* Optional fallback route for handling missing pages */}
         <Route path="*" element={
           <div className="flex items-center justify-center min-h-screen text-slate-500 font-sans">
@@ -69,6 +67,7 @@ export default function App() {
         } />
 
       </Routes>
+      <ScrollToTop/>
       <Footer />
     </Router>
   );
