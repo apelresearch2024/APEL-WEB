@@ -74,7 +74,7 @@ app.use(cors({
       callback(new Error('Blocked by CORS policy: Unauthorized Origin'));
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE','PATCH'],
   credentials: true
 }));
 

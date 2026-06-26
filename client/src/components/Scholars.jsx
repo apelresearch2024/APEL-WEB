@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { LuLinkedin, LuMail, LuGraduationCap } from 'react-icons/lu';
 import { Users } from 'lucide-react';
-
+import Alumni from './Alumni';
+import { useNavigate } from 'react-router-dom';
 const Scholars = () => {
   const [scholars, setScholars] = useState([]);
   const [loading, setLoading] = useState(true);
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchScholars = async () => {
@@ -26,20 +28,20 @@ const Scholars = () => {
   }, [API_BASE]);
 
   const getDirectDriveUrl = (url) => {
-  if (!url || typeof url !== 'string') return '';
+    if (!url || typeof url !== 'string') return '';
 
-  if (url.includes('googleusercontent.com')) return url;
+    if (url.includes('googleusercontent.com')) return url;
 
-  const match = url.match(/\/d\/([^/]+)/);
-  const fileId = match ? match[1] : null;
+    const match = url.match(/\/d\/([^/]+)/);
+    const fileId = match ? match[1] : null;
 
-  if (fileId) {
+    if (fileId) {
 
-    return `https://lh3.googleusercontent.com/d/${fileId}`;
-  }
+      return `https://lh3.googleusercontent.com/d/${fileId}`;
+    }
 
-  return url; // Fallback to original
-};
+    return url; // Fallback to original
+  };
 
   // Group scholars into descriptive visual categories
   const groupedScholars = useMemo(() => {
@@ -100,14 +102,12 @@ const Scholars = () => {
             </div>
           </div>
 
-          <a
-            href={`${API_BASE}/scholars/alumni/pdf`}
-            target="_blank"
-            rel="noopener noreferrer"
+          <button
+            onClick={() => navigate('/alumni')}
             className="inline-flex items-center justify-center self-start sm:self-center gap-2 px-4 py-2.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 rounded-xl text-sm font-bold shadow-sm transition-all whitespace-nowrap"
           >
-            <span>Alumni (PDF)</span>
-          </a>
+            <span>Alumni Directory</span>
+          </button>
         </div>
 
         {/* Conditional Structural Check */}
@@ -139,7 +139,7 @@ const Scholars = () => {
 
                         <div className="p-6 flex flex-col flex-grow">
                           <div className="flex items-start gap-4 mb-4">
-                            
+
                             {/* Render extracted asset link safely */}
                             {targetImageSrc ? (
                               <img

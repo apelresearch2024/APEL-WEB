@@ -101,7 +101,25 @@ scholarRouter.get('/alumni/pdf', async (req, res) => {
     res.status(500).json({ success: false, message: 'PDF Generation Failed' });
   }
 });
+scholarRouter.get('/alumni', async (req, res) => {
+  try {
+    // Queries the collection for Alumni and sorts them with the most recent grads first
+    const alumniList = await Scholar.find({ status: 'Alumni' })
+      .sort({ graduationYear: -1, name: 1 });
 
+    return res.status(200).json({
+      success: true,
+      count: alumniList.length,
+      data: alumniList
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Server error occurred while retrieving alumni records.',
+      error: error.message
+    });
+  }
+});
 // 3. POST New Scholar
 scholarRouter.post('/', protect, upload.single('imageFile'), async (req, res) => {
   try {
