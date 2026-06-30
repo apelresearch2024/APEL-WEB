@@ -21,7 +21,7 @@ const Footer = () => {
         <div className="space-y-2.5">
           <h4 className="font-bold text-sm sm:text-base tracking-wide text-white">Contact</h4>
           <div className="text-slate-400 space-y-1 font-light text-[13px]">
-            <p className="hover:text-white cursor-pointer transition-colors">satish.belkhode[at]ee.iitr.ac.in</p>
+            <p className="hover:text-white cursor-pointer transition-colors">satish.belkhode@ee.iitr.ac.in</p>
             <p>+91-1332285843</p>
             <p>Room 215, EE Dept. Block</p>
           </div>
@@ -34,8 +34,17 @@ const Footer = () => {
             <a href="https://iitr.ac.in" target="_blank" rel="noreferrer" className="flex items-center space-x-1 hover:text-white transition-colors">
               <LuChevronRight className="text-slate-500 text-xs" /> <span>IIT Roorkee Official Website</span>
             </a>
-            <a href="https://ee.iitr.ac.in/" className="flex items-center space-x-1 hover:text-white cursor-pointer transition-colors">
+            
+            <a href="https://ee.iitr.ac.in/" target="_blank" rel="noreferrer" className="flex items-center space-x-1 hover:text-white cursor-pointer transition-colors">
               <LuChevronRight className="text-slate-500 text-xs" /> <span>EE Department</span>
+            </a>
+            
+            <a href="https://www.linkedin.com/company/apel-research/" target="_blank" rel="noreferrer" className="flex items-center space-x-1 hover:text-white cursor-pointer transition-colors">
+              <LuChevronRight className="text-slate-500 text-xs" /> <span>APEL LinkedIn</span>
+            </a>
+            
+            <a href="https://www.youtube.com/@APELIITRoorkee" target="_blank" rel="noreferrer" className="flex items-center space-x-1 hover:text-white cursor-pointer transition-colors">
+              <LuChevronRight className="text-slate-500 text-xs" /> <span>APEL YouTube Channel</span>
             </a>
           </div>
         </div>
